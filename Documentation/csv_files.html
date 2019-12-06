@@ -1,0 +1,40 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+<html>
+    <head>
+        <meta name="qrichtext" content="1" />
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Radiotrack - CSV files format</title>
+    </head>
+    <body>
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="./README.html">Main page</a></li>
+            <li><a href='./shortcut.html'>Keyboard shortcuts</a></li>
+            <li>CSV files format</li>
+        </ul>
+
+        <hr/>
+
+        <h2>CSV files format</h2>
+
+        <p>The plugin works with CSV files. Usually, any spreadsheet software can export its spreadsheets to this format.</p>
+
+        <h3>Headers</h3>
+
+        <p>The first line of the spreadsheet must be a header. Instead of containing data, its cells hold the name of the columns' data. The plugin requires the following header (and columns), in that order:</p>
+
+        <ul>
+            <li>id_observation: a number representing the row. The first row of data (right below the header) must have the number 1, the next one 2, and so on. A spreadsheet editor like Excel will help you easily fill this column.</li>
+            <li>id a number identifying the radioemitter that was measured. It makes more sense to use different files for different radioemitters, so a file always contains the same value.</li>
+            <li>nom the name of that radioemitter.</li>
+            <li>date: time when the signal was measured. Example: 23/01/2018 03:48:00.</li>
+            <li>lat: latitude (North) of the antenna when measuring.</li>
+            <li>lon: longitude (East) of the antenna when measuring.</li>
+            <li>azimut: angle in [0, 360[ indicating where the signal came from.</li>
+            <li>filtre: filter level in [0, 10]. A greater value means that if the signal was measured, its emitter was closer.</li>
+            <li>puissance strength of the signal in [0, 10]. A greater sum with niveau_filtre will produce a shorter line on the map layer, thus indicating a closer emitter.</li>
+            <li>commentaire: any comment you want to associate with the data.</li>
+        </ul>
+
+    </body>
+</html>

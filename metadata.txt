@@ -1,0 +1,40 @@
+# This file contains metadata for your plugin. Since
+# version 2.0 of QGIS this is the proper way to supply
+# information about a plugin. The old method of
+# embedding metadata in __init__.py will
+# is no longer supported since version 2.0.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=Radiotrack
+qgisMinimumVersion=2.0
+qgisMaximumVersion=3.99
+description=Visualizes radiotracking data
+version=0.1
+author=Bello Fernando, Boisson Romain, Cabodi Alexis, Canon Louis-Claude, Jeannin Emile, Moyikoulou Chris-Féri, Wetzel Anthony
+
+email=louis-claude.canon@femto-st.fr
+
+about=This plugin allows visualizing and processing telemetry data from a csv file.
+
+# End of mandatory metadata
+
+# Recommended items:
+
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=home range, ecology, animal movements, zoology
+
+homepage=
+tracker=soon
+repository=soon
+category=Plugins
+icon=icon.png
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
