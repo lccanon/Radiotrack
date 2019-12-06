@@ -11,7 +11,7 @@ name=Radiotrack
 qgisMinimumVersion=2.0
 qgisMaximumVersion=3.99
 description=Visualizes radiotracking data
-version=0.1
+version=0.2
 author=Bello Fernando, Boisson Romain, Cabodi Alexis, Canon Louis-Claude, Jeannin Emile, Moyikoulou Chris-Féri, Wetzel Anthony
 
 email=louis-claude.canon@femto-st.fr
@@ -34,7 +34,7 @@ repository=https://github.com/lccanon/Radiotrack
 category=Plugins
 icon=icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False
