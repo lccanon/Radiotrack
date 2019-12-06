@@ -29,8 +29,8 @@ about=This plugin allows visualizing and processing telemetry data from a csv fi
 tags=home range, ecology, animal movements, zoology
 
 homepage=
-tracker=soon
-repository=soon
+tracker=https://github.com/lccanon/Radiotrack/issues
+repository=https://github.com/lccanon/Radiotrack
 category=Plugins
 icon=icon.png
 # experimental flag
