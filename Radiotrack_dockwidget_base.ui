@@ -64,7 +64,7 @@ Any previously loaded data will be replaced.</string>
               <string>Export the table above as a CSV file.</string>
              </property>
              <property name="text">
-              <string>Save as...</string>
+              <string>Export</string>
              </property>
             </widget>
            </item>

@@ -187,8 +187,10 @@ class Radiotrack:
                 self.tr(u'&Radiotrack'),
                 action)
             self.iface.removeToolBarIcon(action)
+            self.iface.unregisterMainWindowAction(action)
         # remove the toolbar
         del self.toolbar
+        self.dockwidget.clear()
 
     #--------------------------------------------------------------------------
     def run(self):

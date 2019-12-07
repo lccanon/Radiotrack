@@ -40,7 +40,7 @@ from .compat import QDockWidget, QTableView, QItemEditorFactory, QStyledItemDele
 
 from .manageDocumentation import importDoc
 
-from .csv_utils import table_info, select_csv_file, load_csv_to_array, save_array_to_csv, select_save_file
+from .csv_utils import labels, types, select_csv_file, load_csv_to_array, save_array_to_csv, select_save_file
 from .layer_utils import create_layers, update_layers, clear_layers
 from .TrackingModel import TrackingModel
 
@@ -48,22 +48,32 @@ from .TrackingModel import TrackingModel
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'Radiotrack_dockwidget_base.ui'))
 
-COORD_PRECISION = 6 # precision up to 10 cm
+COORD_PREC = 6 # precision up to 10 cm
 COORD_MIN = -180 # longitude starts at -180°
 COORD_MAX = 180 # longitude ends at 180°
+COORD_STEP = 0.0001 # 10 meters step
 
 
-class ItemEditorFactory(QItemEditorFactory):
+class CoordItemDelegate(QStyledItemDelegate):
+    def __init__(self):
+        super(QStyledItemDelegate, self).__init__()
+
+    def displayText(self, value, locale):
+        if isinstance(value, float):
+            return locale.toString(value, 'f', COORD_PREC)
+        else:
+            return super().displayText(value, locale)
+
+class CoordItemEditorFactory(QItemEditorFactory):
     def __init__(self):
         super(QItemEditorFactory, self).__init__()
-
 
     def createEditor(self, userType, parent):
         if userType == QVariant.Double:
             doubleSpinBox = QDoubleSpinBox(parent)
-            doubleSpinBox.setDecimals(COORD_PRECISION)
+            doubleSpinBox.setDecimals(COORD_PREC)
             doubleSpinBox.setRange(COORD_MIN, COORD_MAX)
-            doubleSpinBox.setSingleStep(0.0001)
+            doubleSpinBox.setSingleStep(COORD_STEP)
             return doubleSpinBox
         else:
             return super().createEditor(userType, parent)
@@ -91,8 +101,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.setupUi(self)
         """Used statements"""
         """Plugin actions"""
-        """Clear old layers"""
-        clear_layers()
         """Import the documentation"""
         importDoc(self.documentationText)
         """Navigation in QTableWidget shortcut"""
@@ -100,25 +108,20 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         QShortcut(QKeySequence("Ctrl+PgUp"), self).activated.connect(self.navigateLeftTab)
         """Import and export csv project actions"""
         self.importButton.clicked.connect(self.import_file)
-        self.currentProjectText.clear()
         self.importButton.setShortcut("Ctrl+Alt+I")
         """Save actions"""
         self.saveAsButton.clicked.connect(self.save_as)
-        self.saveAsButton.setShortcut("Ctrl+Alt+S")
+        self.saveAsButton.setShortcut("Ctrl+Alt+X")
         """Empty the table and the model, and forget the CSV file"""
         self.clearButton.clicked.connect(self.clear)
         self.clearButton.setShortcut("Ctrl+Alt+C")
-        """Table actions"""
-        styledItemDelegate = QStyledItemDelegate()
-        styledItemDelegate.setItemEditorFactory(ItemEditorFactory())
-        self.tableView.setItemDelegate(styledItemDelegate)
 
     def navigateRightTab(self):
-        currentIndex=(self.tabWidget.currentIndex()-1)%self.tabWidget.count()
+        currentIndex=(self.tabWidget.currentIndex()+1)%self.tabWidget.count()
         self.tabWidget.setCurrentIndex(currentIndex)
 
     def navigateLeftTab(self):
-        currentIndex=(self.tabWidget.currentIndex()+1)%self.tabWidget.count()
+        currentIndex=(self.tabWidget.currentIndex()-1)%self.tabWidget.count()
         self.tabWidget.setCurrentIndex(currentIndex)
 
     def closeEvent(self, event):
@@ -137,6 +140,17 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Disable auto refresh because we may change cells' colors
         self.model.itemChanged.disconnect()
 
+        # Change the current type if not the correct one
+        header = self.model.headerData(item.column(), Qt.Horizontal)
+        parse_function = types[header]
+        data = item.data(Qt.EditRole)
+        if not isinstance(data, parse_function):
+            try:
+                content = parse_function(data)
+                item.setData(content, Qt.EditRole)
+            except:
+                pass
+
         self.update_row(item.row())
 
         # Enable auto refresh again
@@ -147,7 +161,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         clear_layers()
         if self.model:
             self.model.clear()
-        self.currentProjectText.setText('')
+        self.currentProjectText.clear()
         QgsMessageLog.logMessage('Cleared layers and table', 'Radiotrack', level=message_log_levels["Info"])
 
     def update_row(self, row):
@@ -210,7 +224,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         for row in rows:
             erroneous_columns = row['erroneous_columns']
             if erroneous_columns:
-                self.create_red_row(row['data']['ID_OBSERVATION']-1, erroneous_columns)
+                self.create_red_row(row['data']['id_observation']-1, erroneous_columns)
 
 
     def import_file(self):
@@ -222,10 +236,11 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             if csv_array == []:
                 QgsMessageLog.logMessage('Unable to load the file: wrong format', 'Radiotrack', level=message_log_levels['Warning'])
                 iface.messageBar().pushWarning('Warning Radiotrack', 'Unable to load the file: wrong format.')
-                self.currentProjectText.clear()
             else:
-                self.layer_suffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
+                #if self.model and self.model.rowCount() > 0:
+                #    Add to existing model
                 self.clear()
+                self.layer_suffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
                 self.currentProjectText.setText(filename)
                 self.load_array_in_model(csv_array)
                 self.create_table()
@@ -242,10 +257,22 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         """Configure the table and assign the model to it
         """
         self.tableView.setModel(self.model)
-        self.tableView.setColumnHidden(0,True)
+        self.tableView.setColumnHidden(0, True)
+        self.setItemDelegate()
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
         QgsMessageLog.logMessage('Table successfully created', 'Radiotrack', level=message_log_levels["Info"])
+
+
+    def setItemDelegate(self):
+        """Table actions"""
+        itemDelegate = CoordItemDelegate()
+        itemDelegate.setItemEditorFactory(CoordItemEditorFactory())
+        for col in range(self.model.columnCount()):
+            header = self.model.headerData(col, Qt.Horizontal)
+            if header == labels['X'] or header == labels['Y']:
+                self.tableView.setItemDelegateForColumn(col, itemDelegate)
+
 
     def save_as(self):
         """Display a dialog to ask where to save, and save the current content of the table in the selected file
@@ -262,6 +289,16 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                     self.currentProjectText.setText(filename)
                     iface.messageBar().pushInfo(u'Radiotrack: ', u'CSV file saved!')
 
+    def convert_field(self, field):
+        content = get_field(field)
+        try:
+            content = int(content)
+        except ValueError:
+            try:
+                content = float(content)
+            except ValueError:
+                pass
+        return content
 
     def load_array_in_model(self, array):
         """Load an array in the model/table
@@ -281,16 +318,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                 items = []
                 for field in row:
                     item = QtGui.QStandardItem()
-                    content = get_field(field)
-                    try:
-                        content = int(content)
-                    except ValueError:
-                        try:
-                            content = float(content)
-                        except ValueError:
-                            pass
+                    content = self.convert_field(field)
                     item.setData(content, Qt.EditRole)
                     items.append(item)
 
                 self.model.appendRow(items)
-

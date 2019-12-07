@@ -7,25 +7,23 @@ from qgis.PyQt.QtWidgets import QFileDialog
 from .compat import message_log_levels, message_bar_levels, get_filename_qdialog, write_csv
 
 
-table_info = {
-    "ID_OBSERVATION": {"header": "id_observation", "type": int, "index": 0, "used_for_points": False, "used_for_lines": False},
-    "ID_INDIVIDU": {"header": "id", "type": int, "index": 1, "used_for_points": False, "used_for_lines": False},
-    "NOM_INDIVIDU": {"header": "nom", "type": str, "index": 2, "used_for_points": False, "used_for_lines": False},
-    "DATE": {"header": "date", "type": str, "index": 3, "used_for_points": False, "used_for_lines": False},
-    "Y": {"header": "lat", "type": float, "index": 4, "used_for_points": True, "used_for_lines": True},
-    "X": {"header": "lon", "type": float, "index": 5, "used_for_points": True, "used_for_lines": True},
-    "AZIMUT": {"header": "azimut", "type": float, "index": 6, "used_for_points": False, "used_for_lines": True},
-    "NIVEAU_FILTRE": {"header": "filtre", "type": float, "index": 7, "used_for_points": False, "used_for_lines": True},
-    "PUISSANCE_SIGNAL": {"header": "puissance", "type": float, "index": 8, "used_for_points": False, "used_for_lines": True},
-    "COMMENTAIRE": {"header": "commentaire", "type": str, "index": 9, "used_for_points": False, "used_for_lines": False}
+labels = {"Y": "lat", "X": "lon", "AZIMUT": "azi",
+          "NIVEAU_FILTRE": "filter", "PUISSANCE_SIGNAL": "power"}
+
+types = {
+    "id_observation": int,
+    "id": int,
+    "name": str,
+    "date": str,
+    "lat": float,
+    "lon": float,
+    "azi": float,
+    "filter": float,
+    "power": float,
+    "comment": str
 }
 
-columns_count = len(table_info)
-
-table_headers = [None] * columns_count
-for column_name, column_infos in table_info.items():
-    index = column_infos["index"]
-    table_headers[index] = column_infos["header"]
+table_headers = ["id_observation", "id", "name", "date", "lat", "lon", "azi", "filter", "power", "comment"]
 
 def select_csv_file():
     """Displays a dialog allowing the user to select a file
