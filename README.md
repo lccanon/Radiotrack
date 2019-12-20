@@ -1,6 +1,7 @@
 # Radiotrack (v0.4)
 
-Welcome to the Radiotrack's documentation.
+Welcome to the Radiotrack's documentation. See also the QGIS
+[plugin page](http://plugins.qgis.org/plugins/Radiotrack/).
 
 ## Feature Summary
 
@@ -76,23 +77,15 @@ don't forget to save your data when you're done.
 
 ## Shortcuts
 
----------------- -------------------------------------
-Shortcut         Effect
----------------- -------------------------------------
-Ctrl + Alt + B   Open/Close the plugin
-
-Ctrl + Alt + I   Import a new file
-
-Ctrl + Alt + X   Export selected items
-
-F2               Edit cell
-
-Ctrl + Alt + C   Clear the loaded data
-
-Ctrl + Page Down Go to the next tab
-
-Ctrl + Page Up   Go to previous tab
----------------- -------------------------------------
+| Shortcut         | Effect                |
+| ---------------- |-----------------------|
+| Ctrl + Alt + B   | Open/Close the plugin |
+| Ctrl + Alt + I   | Import a new file     |
+| Ctrl + Alt + X   | Export selected items |
+| F2               | Edit cell             |
+| Ctrl + Alt + C   | Clear the loaded data |
+| Ctrl + Page Down | Go to the next tab    |
+| Ctrl + Page Up   | Go to previous tab    |
 
 ## CSV files format
 
