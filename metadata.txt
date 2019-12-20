@@ -11,10 +11,10 @@ name=Radiotrack
 qgisMinimumVersion=2.0
 qgisMaximumVersion=3.99
 description=Visualizes radiotracking data
-version=0.3
+version=0.4
 author=Bello Fernando, Boisson Romain, Cabodi Alexis, Canon Louis-Claude, Jeannin Emile, Moyikoulou Chris-Féri, Wetzel Anthony
 
-email=louis-claude.canon@femto-st.fr
+email=louis-claude.canon@univ-fcomte.fr
 
 about=This plugin allows visualizing and processing telemetry data from a csv file.
 
@@ -28,7 +28,7 @@ about=This plugin allows visualizing and processing telemetry data from a csv fi
 # Tags are comma separated with spaces allowed
 tags=home range, ecology, animal movements, zoology
 
-homepage=
+homepage=https://github.com/lccanon/Radiotrack
 tracker=https://github.com/lccanon/Radiotrack/issues
 repository=https://github.com/lccanon/Radiotrack
 category=Plugins
