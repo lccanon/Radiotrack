@@ -1,0 +1,1 @@
+To produce resources.py: pyrcc4 -py3 -o resources.py resources.qrc

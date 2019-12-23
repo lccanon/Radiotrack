@@ -62,9 +62,6 @@ class Radiotrack:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&Radiotrack')
-        # TODO: We are going to let the user set this up in a future iteration
-        self.toolbar = self.iface.addToolBar(u'Radiotrack')
-        self.toolbar.setObjectName(u'Radiotrack')
         self.pluginIsActive = False
         self.dockwidget = None
 
@@ -144,7 +141,7 @@ class Radiotrack:
         if whats_this is not None:
             action.setWhatsThis(whats_this)
         if add_to_toolbar:
-            self.toolbar.addAction(action)
+            self.iface.addToolBarIcon(action)
         if add_to_menu:
             self.iface.addPluginToMenu(
                 self.menu,
@@ -166,7 +163,7 @@ class Radiotrack:
         settings = QSettings()
         settings.beginGroup('shortcuts')
         shortcut = settings.value(actionOpen.text())
-        if shortcut == None:
+        if shortcut is None:
             shortcut = DEFAULT
         self.iface.registerMainWindowAction(actionOpen, shortcut)
 
@@ -188,9 +185,8 @@ class Radiotrack:
                 action)
             self.iface.removeToolBarIcon(action)
             self.iface.unregisterMainWindowAction(action)
-        # remove the toolbar
-        del self.toolbar
-        self.dockwidget.clear()
+        if self.dockwidget is not None:
+            self.dockwidget.clear()
 
     #--------------------------------------------------------------------------
     def run(self):
@@ -201,7 +197,7 @@ class Radiotrack:
             # dockwidget may not exist if:
             #    first run of plugin
             #    removed on close (see self.onClosePlugin method)
-            if self.dockwidget == None:
+            if self.dockwidget is None:
                 # Create the dockwidget (after translation) and keep reference
                 self.dockwidget = RadiotrackDockWidget()
                 #self.dockwidget.setIfaceRef(self.iface)

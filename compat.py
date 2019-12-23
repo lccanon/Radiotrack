@@ -34,13 +34,13 @@ def write_csv(csv_file_name, array):
         else:
             with io.open(csv_file_name, 'w', newline='') as output_file:
                 writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                
+
                 writer.writerows(array)
-    
+
         return True
     except:
         return False
-        
+
 
 def get_field(field):
     if PY2:
@@ -64,7 +64,7 @@ else:
     from qgis.core import Qgis as QGis
 
 if QGis.QGIS_VERSION_INT >= 30000:
-    from qgis.PyQt.QtWidgets import QAction, QDockWidget, QTableView, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox
+    from qgis.PyQt.QtWidgets import QAction, QDockWidget, QTableView, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QCheckBox, QDateTimeEdit
     from qgis.core import QgsProject
     from qgis.core import QgsPointXY
 
@@ -77,7 +77,7 @@ if QGis.QGIS_VERSION_INT >= 30000:
     }
     message_bar_levels = message_log_levels
 else:
-    from qgis.PyQt.QtGui import QAction, QDockWidget, QTableView, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox
+    from qgis.PyQt.QtGui import QAction, QDockWidget, QTableView, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QCheckBox, QDateTimeEdit
     from qgis.core import QgsMapLayerRegistry as QgsProject
     from qgis.core import QgsPoint
 

@@ -1,4 +1,4 @@
-# Radiotrack (v0.4)
+# Radiotrack (v0.5)
 
 Welcome to the Radiotrack's documentation. See also the QGIS
 [plugin page](http://plugins.qgis.org/plugins/Radiotrack/).
@@ -6,9 +6,11 @@ Welcome to the Radiotrack's documentation. See also the QGIS
 ## Feature Summary
 
 - Import and export CSV files
-- Create map layers showing the measures
+- Create map layers showing the measures (points and bearings)
 - Indicate errors in the data
 - Automatic map updates when changing the data
+- Filter measures based on individuals and dates
+- Highlight biangulations
 - Alerts given with QGIS' message bar
 - Detailed information is logged into QGIS' standard window
 

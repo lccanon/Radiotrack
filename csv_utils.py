@@ -6,11 +6,10 @@ from qgis.PyQt.QtWidgets import QFileDialog
 
 from .compat import message_log_levels, message_bar_levels, get_filename_qdialog, write_csv
 
-
-labels = {"Y": "lat", "X": "lon", "AZIMUT": "azi",
-          "NIVEAU_FILTRE": "filter", "PUISSANCE_SIGNAL": "power"}
+labels = {"Y": "lat", "X": "lon", "AZIMUT": "azi"}
 
 types = {
+    "select": str,
     "id_observation": int,
     "id": int,
     "name": str,
@@ -33,18 +32,15 @@ def select_csv_file():
     file_path : str
         The path of the selected csv file. Empty if an error occurred, or if nothing was selected
     """
-    try:
-        dialog = QFileDialog()
-        dialog.setFileMode(QFileDialog.AnyFile)
-        dialog.setNameFilter("Text files (*.csv)")
-        if dialog.exec_():
-            filenames = dialog.selectedFiles()
-            QgsMessageLog.logMessage('Project successfully imported', 'Radiotrack', level=message_log_levels["Info"])
-            return filenames[0]
-    except:
-        QgsMessageLog.logMessage('Error importing file', 'Radiotrack', level=message_log_levels["Critical"])
-        iface.messageBar().pushInfo(u'Radiotrack: ', u'Error importing file')
-        return ''
+    dialog = QFileDialog()
+    dialog.setNameFilter("Text files (*.csv)")
+    if dialog.exec_():
+        filenames = dialog.selectedFiles()
+        QgsMessageLog.logMessage('File successfully selected', 'Radiotrack', level=message_log_levels["Info"])
+        return filenames[0]
+    else:
+        QgsMessageLog.logMessage('No file selected', 'Radiotrack', level=message_log_levels["Info"])
+        return None
 
 def validate_headers(headers):
     """Validate the headers. Returns True if the headers are valid
@@ -62,16 +58,14 @@ def validate_headers(headers):
 
     errors = []
     try:
-        for index, header in enumerate(headers):
-            if header != table_headers[index]:
-                errors.append(table_headers[index] + ' fatal error')
+        for index, header in enumerate(table_headers):
+            if header != headers[index]:
+                errors.append('Field ' + headers[index] + ' should be ' + header)
     except:
-        errors.append('Fatal error validating header')
-        QgsMessageLog.logMessage('Fatal error validating header', 'Radiotrack', level=message_log_levels["Critical"])
+        errors.append('Missing header field(s)')
 
     if len(errors) > 0:
         iface.messageBar().pushCritical('Error Radiotrack', 'Header structure error. Check the log.')
-
         for err in errors:
             QgsMessageLog.logMessage(err, 'Radiotrack', level=message_log_levels["Critical"])
 
@@ -102,9 +96,13 @@ def load_csv_to_array(filename):
                 # What we get here are the headers
                 # We can check their validity first
                 if not validate_headers(row):
-                    return []
-
+                    return None
             csv_array.append(row)
+    # In case of empty file
+    if is_first_line:
+        QgsMessageLog.logMessage('Unable to load the file: empty file', 'Radiotrack', level=message_log_levels['Critical'])
+        iface.messageBar().pushCritical('Warning Radiotrack', 'Unable to load the file: empty file.')
+        return None
     return csv_array
 
 def save_array_to_csv(array, csv_file_name):
