@@ -2,6 +2,7 @@ import os, csv, io
 from qgis.core import QgsMessageLog
 from qgis.utils import iface
 
+from qgis.PyQt.QtCore import QDateTime
 from qgis.PyQt.QtWidgets import QFileDialog
 
 from .compat import message_log_levels, message_bar_levels, get_filename_qdialog, write_csv
@@ -10,19 +11,19 @@ labels = {"Y": "lat", "X": "lon", "AZIMUT": "azi"}
 
 types = {
     "select": str,
-    "id_observation": int,
-    "id": int,
+    "id_observation": str,
+    "id": str,
     "name": str,
-    "date": str,
+    "datetime": QDateTime,
     "lat": float,
     "lon": float,
     "azi": float,
-    "filter": float,
-    "power": float,
-    "comment": str
+    "filter": str,
+    "power": str,
+    "comment": str,
 }
 
-table_headers = ["id_observation", "id", "name", "date", "lat", "lon", "azi", "filter", "power", "comment"]
+table_headers = ["id_observation", "id", "name", "datetime", "lat", "lon", "azi", "filter", "power", "comment"]
 
 def select_csv_file():
     """Displays a dialog allowing the user to select a file

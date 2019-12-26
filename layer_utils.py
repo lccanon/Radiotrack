@@ -11,6 +11,7 @@ from .csv_utils import labels
 # Store references to the layers
 layer_line = None
 layer_point = None
+full_extent = None
 
 LINE_LAYER_BASE_NAME = "lines"
 POINT_LAYER_BASE_NAME = "points"
@@ -30,11 +31,17 @@ def create_layers(array, layer_suffix = ""):
     layer_suffix : str
         A potential suffix to add to all the layer created
     """
+    global full_extent
 
-    # Draw the available points on their layer
-    draw_points(array, POINT_LAYER_BASE_NAME + layer_suffix)
+    # Draw the available points on their layers
     draw_lines(array, LINE_LAYER_BASE_NAME + layer_suffix)
-    set_filter([row['data']['id_observation'] for row in array], False)
+    draw_points(array, POINT_LAYER_BASE_NAME + layer_suffix)
+    set_filter([row['id_observation'] for row in array], False)
+
+    full_extent = layer_point.extent()
+    full_extent.combineExtentWith(layer_line.extent())
+    # XXX workaround to iface.mapCanvas().zoomToFullExtent() does not work
+    iface.mapCanvas().zoomToFeatureExtent(full_extent)
 
 def draw_points(rows, layer_name):
     global layer_point
@@ -53,7 +60,7 @@ def draw_points(rows, layer_name):
     # Create and add point features
     features = []
     for row in rows:
-        new_geometry = make_point_geometry(row['data'])
+        new_geometry = make_point_geometry(row)
         new_feature = QgsFeature()
         new_feature.setGeometry(new_geometry)
         features.append(new_feature)
@@ -80,7 +87,7 @@ def draw_lines(rows, layer_name):
     # Create and add line features
     features = []
     for row in rows:
-        new_geometry = make_line_geometry(row['data'])
+        new_geometry = make_line_geometry(row)
         new_feature = QgsFeature()
         new_feature.setGeometry(new_geometry)
         features.append(new_feature)
@@ -114,16 +121,16 @@ def make_line_geometry(row_data):
 def add_line_and_point(rows):
     global layer_point
     global layer_line
+    global full_extent
 
     layer_point.startEditing()
     layer_line.startEditing()
 
-    # XXX redundant code
     for row in rows:
-        new_geometry = make_point_geometry(row['data'])
-        layer_point.changeGeometry(row['data']['id_observation'], new_geometry)
-        new_geometry = make_line_geometry(row['data'])
-        layer_line.changeGeometry(row['data']['id_observation'], new_geometry)
+        new_geometry = make_point_geometry(row)
+        layer_point.changeGeometry(row['id_observation'], new_geometry)
+        new_geometry = make_line_geometry(row)
+        layer_line.changeGeometry(row['id_observation'], new_geometry)
 
     layer_point.commitChanges()
     layer_line.commitChanges()
@@ -131,13 +138,20 @@ def add_line_and_point(rows):
     layer_point.updateExtents()
     layer_line.updateExtents()
 
-    set_filter([row['data']['id_observation'] for row in rows], False)
+    set_filter([row['id_observation'] for row in rows], False)
+
+    #XXX change a bit even when layer extents have not changed
+    current_extent = iface.mapCanvas().extent()
+    if current_extent.contains(full_extent):
+        full_extent.combineExtentWith(layer_point.extent())
+        full_extent.combineExtentWith(layer_line.extent())
+        iface.mapCanvas().zoomToFeatureExtent(full_extent)
 
 def set_filter(id_rows, filter):
     global layer_point
     global layer_line
 
-    if len(id_rows) == 0:
+    if len(id_rows) == 0 or layer_point is None or layer_line is None:
         return
 
     # Assumes that the fieldIdx is the same in both layers

@@ -1,4 +1,4 @@
-# Radiotrack (v0.5)
+# Radiotrack (v0.6)
 
 Welcome to the Radiotrack's documentation. See also the QGIS
 [plugin page](http://plugins.qgis.org/plugins/Radiotrack/).
@@ -106,7 +106,7 @@ plugin requires the following header (and columns), in that order:
   makes more sense to use different files for different radioemitters,
   so a file always contains the same value.
 - name: the name of that radioemitter.
-- date: time when the signal was measured. Example: 23/01/2018
+- datetime: time when the signal was measured. Example: 23/01/2018
   03:48:00.
 - lat: latitude (North) of the antenna when measuring.
 - lon: longitude (East) of the antenna when measuring.

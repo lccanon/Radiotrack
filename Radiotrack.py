@@ -62,8 +62,8 @@ class Radiotrack:
         # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&Radiotrack')
-        self.pluginIsActive = False
-        self.dockwidget = None
+        # Create the dockwidget (after translation) and keep reference
+        self.dockwidget = RadiotrackDockWidget()
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -166,16 +166,10 @@ class Radiotrack:
         if shortcut is None:
             shortcut = DEFAULT
         self.iface.registerMainWindowAction(actionOpen, shortcut)
+        self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
 
 
     #--------------------------------------------------------------------------
-    def onClosePlugin(self):
-        """Cleanup necessary items here when plugin dockwidget is closed"""
-
-        # disconnects
-        self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
-        self.pluginIsActive = False
-
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
 
@@ -185,27 +179,14 @@ class Radiotrack:
                 action)
             self.iface.removeToolBarIcon(action)
             self.iface.unregisterMainWindowAction(action)
-        if self.dockwidget is not None:
-            self.dockwidget.clear()
+        self.dockwidget.clear()
 
     #--------------------------------------------------------------------------
     def run(self):
         """Run method that loads and starts the plugin"""
 
-        if not self.pluginIsActive:
-            self.pluginIsActive = True
-            # dockwidget may not exist if:
-            #    first run of plugin
-            #    removed on close (see self.onClosePlugin method)
-            if self.dockwidget is None:
-                # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = RadiotrackDockWidget()
-                #self.dockwidget.setIfaceRef(self.iface)
-            # connect to provide cleanup on closing of dockwidget
-            self.dockwidget.closingPlugin.connect(self.onClosePlugin)
+        if not self.dockwidget.isVisible():
             # show the dockwidget
-            # TODO: fix to allow choice of dock location
-            self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
         else:
             self.dockwidget.close()
