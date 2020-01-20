@@ -11,7 +11,6 @@ labels = {"Y": "lat", "X": "lon", "AZIMUT": "azi"}
 
 types = {
     "select": str,
-    "id_observation": str,
     "id": str,
     "name": str,
     "datetime": QDateTime,
@@ -23,7 +22,7 @@ types = {
     "comment": str,
 }
 
-table_headers = ["id_observation", "id", "name", "datetime", "lat", "lon", "azi", "filter", "power", "comment"]
+table_headers = ["id", "name", "datetime", "lat", "lon", "azi", "filter", "power", "comment"]
 
 def select_csv_file():
     """Displays a dialog allowing the user to select a file

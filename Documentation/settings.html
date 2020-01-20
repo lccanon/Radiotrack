@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Radiotrack - Main page</title>
+        <style>
+            h2, h3 {
+                text-decoration: underline;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="./README.html">Main page</a></li>
+            <li>Filters and settings</li>
+            <li><a href="./shortcut.html">Keyboard shortcuts</a></li>
+            <li><a href="./csv_files.html">CSV files format</a></li>
+        </ul>
+
+        <hr/>
+
+        <h2>Filters and settings</h2>
+
+        <p>The second tab enables you to decide which and how data are displayed.</p>
+
+        <h3>Filters</h3>
+
+        <p>Filters let you see only data you want. The irrelevant measures are hidden in the table and on the map. You'll need to change the filters for them to reappear. You can also click on the "Reset filters" button to erase your filters and show all the data again.</p>
+
+            <h4>Id</h4>
+
+            <p>This field lets you select a radioemitter's identifier so its measures only will be shown. The option "All" won't hide anything.</p>
+
+            <h4>Datetime</h4>
+
+            <p>This filter is made of two datetimes. Only measures taken between these two times (included) will be shown. After importing or resetting the filters, the "From" field will contain the oldest time from your table, and the "To" one will contain the most recent time.</p>
+
+            <p>You can click on numbers you wish to change, and type the new ones. However, if you use the up or down arrows (from your keyboard or the fields) in the "From" field, 1 will be added or substracted to the current number in <em>both</em> fields. You can use that, for example, to define a range of 1 hour and 15 minutes, put your cursor on the hour of the "From" field, and browse through a long series of measures with the arrows.</p>
+
+            <h4>Keep only</h4>
+
+            <p>Those are extra filters to hide measures that are not valid or interesting. For example, checking "Valid position" will hide the measures where the "lat" and/or "lon" cells are red.</p>
+
+        <h3>Settings</h3>
+
+        <p>A few tweaks are available for the plugin.</p>
+
+            <h4>Segment length</h4>
+
+            <p>This parameter controls the length of the lines on the map.</p>
+
+            <h4>Datetime format</h4>
+
+            <p>Changes how the dates and times are displayed in the plugin.</p>
+
+            <h4>CRS</h4>
+
+            <p>Changes the Coordinate Reference System of your data. The default one, EPSG:4326, is the current standard for GPS coordinates. However, if you want to use a different system, you can set your CRS in the bottom right corner of QGIS and select the "Project CRS" option in this plugin.</p>
+
+    </body>
+</html>

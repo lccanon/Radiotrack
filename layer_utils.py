@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*
 from qgis.utils import iface
-from qgis.core import QgsVectorLayer, QgsFeature, QgsPoint, QgsGeometry, QgsField, edit
+from qgis.core import QgsVectorLayer, QgsFeature, QgsPoint, QgsGeometry, QgsField, QgsCoordinateTransform, QgsCoordinateReferenceSystem, edit
 from .algorithmNewPoint import dst
 from .compat import QgsProject, buildGeomPoint, message_log_levels
 from qgis.core import QgsMessageLog
@@ -12,6 +12,8 @@ from .csv_utils import labels
 layer_line = None
 layer_point = None
 full_extent = None
+curr_extent = None
+CRS = QgsCoordinateReferenceSystem('epsg:4326')
 
 LINE_LAYER_BASE_NAME = "lines"
 POINT_LAYER_BASE_NAME = "points"
@@ -31,17 +33,53 @@ def create_layers(array, layer_suffix = ""):
     layer_suffix : str
         A potential suffix to add to all the layer created
     """
-    global full_extent
 
     # Draw the available points on their layers
     draw_lines(array, LINE_LAYER_BASE_NAME + layer_suffix)
     draw_points(array, POINT_LAYER_BASE_NAME + layer_suffix)
     set_filter([row['id_observation'] for row in array], False)
 
+    updateZoom()
+
+def updateZoom():
+    global curr_extent
+
+    updateFullExtent()
+    # Does not zoom to full extent because it does not integrate well
+    # with a basemap
+    iface.mapCanvas().zoomToFeatureExtent(full_extent)
+    curr_extent = iface.mapCanvas().extent()
+
+def updateFullExtent():
+    global full_extent
+
     full_extent = layer_point.extent()
     full_extent.combineExtentWith(layer_line.extent())
-    # XXX workaround to iface.mapCanvas().zoomToFullExtent() does not work
-    iface.mapCanvas().zoomToFeatureExtent(full_extent)
+    # Assumes that the CRS is the same in both layers
+    sourceCrs = layer_point.crs()
+    destCrs = QgsProject.instance().crs()
+    xform = QgsCoordinateTransform(sourceCrs, destCrs, QgsProject.instance())
+    geom = QgsGeometry.fromRect(full_extent)
+    full_extent = xform.transform(full_extent)
+
+def set_EPSG4326():
+    global CRS
+    CRS = QgsCoordinateReferenceSystem('epsg:4326')
+    updateCRS()
+
+def set_project_CRS():
+    global CRS
+    CRS = QgsProject.instance().crs()
+    updateCRS()
+
+def updateCRS():
+    if layer_line is None or layer_point is None:
+        return
+    layer_line.setCrs(CRS)
+    layer_line.triggerRepaint()
+    layer_point.setCrs(CRS)
+    layer_point.triggerRepaint()
+    updateZoom()
 
 def draw_points(rows, layer_name):
     global layer_point
@@ -49,7 +87,8 @@ def draw_points(rows, layer_name):
     """
 
     # Specify the geometry type
-    layer_point = QgsVectorLayer('Point?crs=epsg:4230', layer_name, 'memory')
+    layer_point = QgsVectorLayer('Point?crs=epsg:4326', layer_name, 'memory')
+    layer_point.setCrs(CRS)
     # Avoid warning when closing project
     layer_point.setCustomProperty("skipMemoryLayersCheck", 1)
     with edit(layer_point):
@@ -76,7 +115,8 @@ def draw_lines(rows, layer_name):
     """
 
     # Specify the geometry type
-    layer_line = QgsVectorLayer('LineString?crs=epsg:4230', layer_name, 'memory')
+    layer_line = QgsVectorLayer('LineString?crs=epsg:4326', layer_name, 'memory')
+    layer_line.setCrs(CRS)
     # Avoid warning when closing project
     layer_line.setCustomProperty("skipMemoryLayersCheck", 1)
     with edit(layer_line):
@@ -106,7 +146,6 @@ def make_point_geometry(row_data):
         return QgsGeometry()
 
 def make_line_geometry(row_data):
-    global segment_length
     try:
         x = row_data[labels['X']]
         y = row_data[labels['Y']]
@@ -119,10 +158,6 @@ def make_line_geometry(row_data):
         return QgsGeometry()
 
 def add_line_and_point(rows):
-    global layer_point
-    global layer_line
-    global full_extent
-
     layer_point.startEditing()
     layer_line.startEditing()
 
@@ -140,23 +175,18 @@ def add_line_and_point(rows):
 
     set_filter([row['id_observation'] for row in rows], False)
 
-    #XXX change a bit even when layer extents have not changed
+    # If zoom set has not changed, keep the default one
     current_extent = iface.mapCanvas().extent()
-    if current_extent.contains(full_extent):
-        full_extent.combineExtentWith(layer_point.extent())
-        full_extent.combineExtentWith(layer_line.extent())
-        iface.mapCanvas().zoomToFeatureExtent(full_extent)
+    if current_extent.contains(curr_extent) and curr_extent.contains(current_extent):
+        updateZoom()
 
-def set_filter(id_rows, filter):
-    global layer_point
-    global layer_line
-
+def set_filter(id_rows, is_filtered):
     if len(id_rows) == 0 or layer_point is None or layer_line is None:
         return
 
     # Assumes that the fieldIdx is the same in both layers
     fieldIdx = layer_point.dataProvider().fieldNameIndex('filter')
-    attrs = {id: {fieldIdx: filter} for id in id_rows}
+    attrs = {feature_id: {fieldIdx: is_filtered} for feature_id in id_rows}
 
     layer_point.dataProvider().changeAttributeValues(attrs)
     layer_point.triggerRepaint()

@@ -41,7 +41,7 @@ from .compat import QDockWidget, QTableView, QItemEditorFactory, QStyledItemDele
 from .manageDocumentation import importDoc
 
 from .csv_utils import labels, select_csv_file, load_csv_to_array, save_array_to_csv, select_save_file
-from .layer_utils import create_layers, clear_layers, add_line_and_point, set_filter, set_segment_length
+from .layer_utils import create_layers, clear_layers, add_line_and_point, set_filter, set_segment_length, set_EPSG4326, set_project_CRS
 from .TrackingModel import TrackingModel
 
 
@@ -141,6 +141,10 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.dateComboBox.setCurrentIndex(1)
         """Set segment length"""
         self.segmentLength.valueChanged.connect(set_segment_length)
+        """Set CRS"""
+        self.epsg4326.clicked.connect(set_EPSG4326)
+        self.projectCrs.clicked.connect(set_project_CRS)
+        self.demoButton.clicked.connect(self.import_demo)
 
     def navigateRightTab(self):
         currentIndex=(self.tabWidget.currentIndex()+1)%self.tabWidget.count()
@@ -149,6 +153,11 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
     def navigateLeftTab(self):
         currentIndex=(self.tabWidget.currentIndex()-1)%self.tabWidget.count()
         self.tabWidget.setCurrentIndex(currentIndex)
+
+    def import_demo(self, checked):
+        THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+        my_file = os.path.join(THIS_FOLDER, "./Documentation/example.csv")
+        self.import_file(checked, filename = my_file)
 
     def refresh(self, item):
         """Handle table edits
@@ -175,6 +184,31 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.model.itemChanged.connect(self.refresh)
         QgsMessageLog.logMessage('Project refreshed', 'Radiotrack', level=message_log_levels["Info"])
 
+        # Update filter id list
+        ids = set()
+        headers = [self.model.headerData(col, Qt.Horizontal)
+                   for col in range(self.model.columnCount())]
+        if headers == []:
+            return
+        col_id = headers.index('id')
+        for row in range(self.model.rowCount()):
+            ids.add(self.model.item(row, col_id).text())
+
+        filter_index = 0
+        filter_id = self.idFilter.currentText()
+        self.idFilter.currentTextChanged.disconnect()
+        self.idFilter.setCurrentIndex(0)
+        for i in range(1, self.idFilter.count()):
+            self.idFilter.removeItem(1)
+        index = 0
+        for id in sorted(ids):
+            index += 1
+            if filter_id == id:
+                filter_index = index
+            self.idFilter.addItem(id)
+        self.idFilter.currentTextChanged.connect(self.filter)
+        self.idFilter.setCurrentIndex(filter_index)
+
         # Re-apply filter
         self.filter()
 
@@ -191,12 +225,13 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.clear_filter()
         QgsMessageLog.logMessage('Cleared layers and table', 'Radiotrack', level=message_log_levels["Info"])
 
-    def import_file(self):
+    def import_file(self, checked, filename = None):
         """Import a file: displays a dialog to select the file and load it
         """
-        filename = select_csv_file()
         if filename is None:
-            return
+            filename = select_csv_file()
+            if filename is None:
+                return
         # Clear only when new file is selected
         self.clear()
         # Load model
@@ -244,6 +279,9 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                     iface.messageBar().pushInfo(u'Radiotrack: ', u'CSV file saved.')
 
     def filter(self):
+        if self.model.rowCount() == 0:
+            return
+
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
         col_id = headers.index('id')
@@ -253,8 +291,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         rows_del = []
         for row in range(self.model.rowCount()):
             date = self.model.item(row, col_date).data(Qt.EditRole)
-            id = self.idFilter.currentText()
-            if (id == "All" or self.model.item(row, col_id).text() == id) and \
+            filter_id = self.idFilter.currentText()
+            if (filter_id == "All" or self.model.item(row, col_id).text() == filter_id) and \
                (isinstance(date, str) or
                 (date >= self.dateTimeStart.dateTime() and
                  date <= self.dateTimeEnd.dateTime())) and \
@@ -305,8 +343,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
 
         self.idFilter.setCurrentIndex(0)
         self.clear_filter()
-        for id in sorted(ids):
-            self.idFilter.addItem(id)
+        for filter_id in sorted(ids):
+            self.idFilter.addItem(filter_id)
 
         if smallest_date is not None:
             self.dateTimeStart.setDateTime(smallest_date)

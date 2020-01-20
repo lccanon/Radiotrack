@@ -34,8 +34,8 @@ class TrackingModel(QStandardItemModel):
     def id(self, row):
         return self.item(row, 0).data(self.ID_ROLE)
 
-    def setId(self, row, id):
-        self.item(row, 0).setData(id, self.ID_ROLE)
+    def setId(self, row, row_id):
+        self.item(row, 0).setData(row_id, self.ID_ROLE)
 
     def setDateTimeFormat(self, datetime_format):
         self.datetime_format = datetime_format
@@ -191,11 +191,16 @@ class TrackingModel(QStandardItemModel):
         headers = [self.headerData(col, Qt.Horizontal)
                    for col in range(self.columnCount())]
         array = [headers[1:]]
+        date_index = headers.index('datetime')
         for row in range(self.rowCount()):
             if self.selected(row):
                 line = []
                 for col in range(1, self.columnCount()):
-                    line.append(self.item(row, col).text())
+                    if col == date_index:
+                        data = self.item(row, col).data(Qt.EditRole)
+                        line.append(str(data.toString(self.dateTimeFormat())))
+                    else:
+                        line.append(self.item(row, col).text())
                 array.append(line)
         return array
 
@@ -274,8 +279,8 @@ class BiangulationDetector:
         row_date = self.model.item(row, date_index).data(Qt.EditRole)
 
         # Remove previous values
-        for id in self.rows_for_date:
-            for _, row_ids in self.rows_for_date[id].items():
+        for emitter_id in self.rows_for_date:
+            for _, row_ids in self.rows_for_date[emitter_id].items():
                 row_ids.discard(row_id)
 
         # Create the set if it doesn't exist
