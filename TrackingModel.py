@@ -106,20 +106,23 @@ class TrackingModel(QStandardItemModel):
                 self.set_brush_row(row, self.BRUSH_VALID_ROW)
 
     def update(self, item):
-        # Update validity in case of a successful parsing (which was
-        # not already parsed)
-        if item.parse():
+        # Test whether the parsing was successful (when it was not
+        # already parsed)
+        success = item.parse()
+        # Update biangulation data (must be done before any call to
+        # biangulated) and table color
+        header = self.headerData(item.column(), Qt.Horizontal)
+        if header == 'id' or (item.valid() and header == 'datetime'):
+            self.biangulation_detector.update_biangulation(item.row())
+            self.update_color()
+        # Change validity color of local row in case of successful parsing
+        if success:
             if not self.valid(item.row()):
                 self.set_brush_row(item.row(), self.BRUSH_INVALID_ROW)
             elif self.biangulated(item.row()):
                 self.set_brush_row(item.row(), self.BRUSH_BIANGULATED_ROW)
             else:
                 self.set_brush_row(item.row(), self.BRUSH_VALID_ROW)
-        # Update biangulation and table color
-        header = self.headerData(item.column(), Qt.Horizontal)
-        if item.valid() and (header == 'id' or header == 'datetime'):
-            self.biangulation_detector.update_biangulation(item.row())
-            self.update_color()
 
     def load_array_in_model(self, array):
         """Load an array in the model/table
@@ -196,11 +199,12 @@ class TrackingModel(QStandardItemModel):
             if self.selected(row):
                 line = []
                 for col in range(1, self.columnCount()):
-                    if col == date_index:
-                        data = self.item(row, col).data(Qt.EditRole)
+                    item = self.item(row, col)
+                    if col == date_index and item.valid():
+                        data = item.data(Qt.EditRole)
                         line.append(str(data.toString(self.dateTimeFormat())))
                     else:
-                        line.append(self.item(row, col).text())
+                        line.append(item.text())
                 array.append(line)
         return array
 
@@ -244,6 +248,7 @@ class TrackingItem(QStandardItem):
             else:
                 content = QDateTime.fromString(data,
                                                self.model().dateTimeFormat())
+                # Raise an exception when parsing a datetime fails
                 if content == QDateTime():
                     raise
             self.setData(content, Qt.EditRole)
@@ -254,10 +259,9 @@ class TrackingItem(QStandardItem):
             QgsMessageLog.logMessage('Error reading column %s at line %d.' %
                                      (header, self.row()), 'Radiotrack',
                                      level=message_log_levels['Warning'])
-            if self.valid():
-                if parse_function == float:
-                    self.setData(float('inf'), TrackingModel.SORT_ROLE)
-                self.setInvalid()
+            if parse_function == float:
+                self.setData(float('inf'), TrackingModel.SORT_ROLE)
+            self.setInvalid()
             return False
 
 class BiangulationDetector:

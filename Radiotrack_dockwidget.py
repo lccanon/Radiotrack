@@ -129,10 +129,10 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.dateTimeStart.setSyncDateTime(self.dateTimeEnd)
         """Date format selection"""
         self.dateComboBox.addItem("yyyy-MM-dd hh:mm:ss")
-        self.dateComboBox.addItem("dd/MM/yyyy hh:mm:ss")
-        self.dateComboBox.addItem("MM/dd/yyyy hh:mm:ss")
-        self.dateComboBox.addItem("hh:mm:ss MM/dd/yyyy")
-        self.dateComboBox.addItem("hh:mm:ss dd/MM/yyyy")
+        self.dateComboBox.addItem("d/M/yyyy hh:mm:ss")
+        self.dateComboBox.addItem("M/d/yyyy hh:mm:ss")
+        self.dateComboBox.addItem("hh:mm:ss M/d/yyyy")
+        self.dateComboBox.addItem("hh:mm:ss d/M/yyyy")
         self.dateComboBox.currentTextChanged.connect(self.setDateTimeFormat)
         self.dateComboBox.currentTextChanged.connect(self.dateTimeStart.setDisplayFormat)
         self.dateComboBox.currentTextChanged.connect(self.dateTimeEnd.setDisplayFormat)
@@ -185,6 +185,9 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         QgsMessageLog.logMessage('Project refreshed', 'Radiotrack', level=message_log_levels["Info"])
 
         # Update filter id list
+        # XXX abstract this code in a function (until filter) and
+        # merge with similar code in reset_filter
+        # XXX reinit only if id has been touched
         ids = set()
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
@@ -206,8 +209,12 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             if filter_id == id:
                 filter_index = index
             self.idFilter.addItem(id)
-        self.idFilter.currentTextChanged.connect(self.filter)
         self.idFilter.setCurrentIndex(filter_index)
+        self.idFilter.currentTextChanged.connect(self.filter)
+
+        # XXX update the filter on the date (keep a boolean stating
+        # whether the datetime filter was set, and if not reinit it
+        # with the new value if datetime has been touched)
 
         # Re-apply filter
         self.filter()
@@ -271,8 +278,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             try:
                 array = self.model.to_array_select()
             except:
-                QgsMessageLog.logMessage('Unable serialize the table.', 'Radiotrack', level=message_log_levels["Critical"])
-                iface.messageBar().pushWarning('Warning Radiotrack', 'Unable serialize the table.')
+                QgsMessageLog.logMessage('Unable to serialize the table.', 'Radiotrack', level=message_log_levels["Critical"])
+                iface.messageBar().pushWarning('Warning Radiotrack', 'Unable to serialize the table.')
             else:
                 if save_array_to_csv(array, filename):
                     self.currentProjectText.setText(filename)
@@ -319,7 +326,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
 
     def reset_filter(self):
         ids = set()
-        names = set()
         smallest_date = None
         biggest_date = None
         headers = [self.model.headerData(col, Qt.Horizontal)
@@ -327,11 +333,9 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         if headers == []:
             return
         col_id = headers.index('id')
-        col_name = headers.index('name')
         col_date = headers.index('datetime')
         for row in range(self.model.rowCount()):
             ids.add(self.model.item(row, col_id).text())
-            names.add(self.model.item(row, col_name).text())
             date = self.model.item(row, col_date).data(Qt.EditRole)
 
             if not isinstance(date, str) and (smallest_date is None or

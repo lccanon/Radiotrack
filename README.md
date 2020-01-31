@@ -158,10 +158,10 @@ plugin.
 | Ctrl + Alt + B   | Open/Close the plugin   |
 | Ctrl + Alt + I   | Import a new file     * |
 | Ctrl + Alt + X   | Export selected items * |
-| F2               | Edit cell               |
 | Ctrl + Alt + C   | Clear the loaded data * |
 | Ctrl + Page Down | Go to the next tab      |
 | Ctrl + Page Up   | Go to previous tab      |
+| F2               | Edit cell               |
 
 *: only available on the "Data" tab
 
