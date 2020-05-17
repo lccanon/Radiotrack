@@ -238,7 +238,9 @@ class TrackingItem(QStandardItem):
             return False
         # Change the current type if not the correct one
         header = self.model().headerData(self.column(), Qt.Horizontal)
-        parse_function = types[header]
+        parse_function = types.get(header)
+        if parse_function == None:
+            parse_function = str
         data = self.data(Qt.EditRole)
         if isinstance(data, parse_function):
             return False

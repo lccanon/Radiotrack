@@ -186,9 +186,8 @@ plugin requires the following header (and columns), in that order:
 - lat: latitude (North) of the antenna when measuring.
 - lon: longitude (East) of the antenna when measuring.
 - azi: azimuth, angle in [0, 360[ indicating where the signal came from.
-- filter: filter level of the measuring tool.
-- power: strength of the signal.
-- comment: any comment you want to associate with the data.
+- possible additional columns such as comments you want to associate
+  with the data.
 
 ## Authors
 
