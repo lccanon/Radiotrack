@@ -49,7 +49,7 @@ class TrackingModel(QStandardItemModel):
                     update_color = True
                     self.biangulation_detector.update_biangulation(row)
             if update_color:
-                self.update_color()
+                self.update_color(range(self.rowCount()))
 
     def dateTimeFormat(self):
         return self.datetime_format
@@ -95,9 +95,9 @@ class TrackingModel(QStandardItemModel):
             if current_item.valid():
                 current_item.setBackground(brush)
 
-    def update_color(self):
+    def update_color(self, rows):
         """Update the color of current row and possibly other impacted rows"""
-        for row in range(self.rowCount()):
+        for row in rows:
             if not self.valid(row):
                 self.set_brush_row(row, self.BRUSH_INVALID_ROW)
             elif self.biangulated(row):
@@ -114,15 +114,10 @@ class TrackingModel(QStandardItemModel):
         header = self.headerData(item.column(), Qt.Horizontal)
         if header == 'id' or (item.valid() and header == 'datetime'):
             self.biangulation_detector.update_biangulation(item.row())
-            self.update_color()
+            self.update_color(range(self.rowCount()))
         # Change validity color of local row in case of successful parsing
         if success:
-            if not self.valid(item.row()):
-                self.set_brush_row(item.row(), self.BRUSH_INVALID_ROW)
-            elif self.biangulated(item.row()):
-                self.set_brush_row(item.row(), self.BRUSH_BIANGULATED_ROW)
-            else:
-                self.set_brush_row(item.row(), self.BRUSH_VALID_ROW)
+            self.update_color([item.row()])
 
     def load_array_in_model(self, array):
         """Load an array in the model/table
@@ -156,7 +151,7 @@ class TrackingModel(QStandardItemModel):
             # XXX let Qgis returns these ids
             self.setId(row, row + 1)
             self.biangulation_detector.update_biangulation(row)
-        self.update_color()
+        self.update_color(range(self.rowCount()))
 
     def get_row(self, row):
         result = {}
