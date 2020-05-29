@@ -8,7 +8,7 @@
 
 [general]
 name=Radiotrack
-qgisMinimumVersion=2.0
+qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 description=Visualizes radiotracking data
 version=0.7
