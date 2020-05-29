@@ -174,14 +174,8 @@ The first line of the spreadsheet must be a header. Instead of
 containing data, its cells hold the name of the columns' data. The
 plugin requires the following header (and columns), in that order:
 
-- id: a number identifying the radioemitter that was measured. It
-  makes more sense to use different files for different radioemitters,
-  so usually a file always contains the same value.
-- id: a number identifying the radioemitter that was measured. It
-  makes more sense to use different files for different radioemitters,
-  so a file always contains the same value.
-- name: the name of that radioemitter.
-- datetime: time when the signal was measured. Example: 23/01/2018
+- id: a name or number identifying the radioemitter that was measured.
+- datetime: time when the signal was measured. Example: 2018-01-23
   03:48:00.
 - lat: latitude (North) of the antenna when measuring.
 - lon: longitude (East) of the antenna when measuring.

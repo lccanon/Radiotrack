@@ -16,7 +16,7 @@ types = {
     "azi": float,
 }
 
-table_headers = ["id", "name", "datetime", "lat", "lon", "azi"]
+table_headers = ["id", "datetime", "lat", "lon", "azi"]
 
 def select_csv_file():
     """Displays a dialog allowing the user to select a file

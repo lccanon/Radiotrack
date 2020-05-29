@@ -138,7 +138,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.dateComboBox.currentTextChanged.connect(self.dateTimeEnd.setDisplayFormat)
         # Date format may change biggest and largest known datetimes
         self.dateComboBox.currentTextChanged.connect(self.reset_filter)
-        self.dateComboBox.setCurrentIndex(1)
+        self.dateComboBox.setCurrentIndex(0)
         """Set segment length"""
         self.segmentLength.valueChanged.connect(set_segment_length)
         """Set CRS"""
@@ -292,7 +292,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
         col_id = headers.index('id')
-        col_name = headers.index('name')
         col_date = headers.index('datetime')
         rows_add = []
         rows_del = []
