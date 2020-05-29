@@ -115,8 +115,8 @@ class TrackingModel(QStandardItemModel):
         if header == 'id' or (item.valid() and header == 'datetime'):
             self.biangulation_detector.update_biangulation(item.row())
             self.update_color(range(self.rowCount()))
-        # Change validity color of local row in case of successful parsing
-        if success:
+        # Update validity color of local row in case of successful parsing
+        elif success:
             self.update_color([item.row()])
 
     def load_array_in_model(self, array):
