@@ -35,7 +35,7 @@ from .compat import QShortcut
 
 from .algorithmNewPoint import dst
 
-from .compat import QDoubleSpinBox
+from .compat import QDoubleSpinBox, QDateTimeEdit
 from .compat import QDockWidget, QTableView, QItemEditorFactory, QStyledItemDelegate, message_log_levels, message_bar_levels
 
 from .manageDocumentation import importDoc
@@ -69,8 +69,9 @@ class DateCoordItemDelegate(QStyledItemDelegate):
             return super(DateCoordItemDelegate, self).displayText(value, locale)
 
 class DateCoordItemEditorFactory(QItemEditorFactory):
-    def __init__(self):
+    def __init__(self, model):
         super(QItemEditorFactory, self).__init__()
+        self.model = model
 
     def createEditor(self, userType, parent):
         if userType == QVariant.Double:
@@ -80,6 +81,10 @@ class DateCoordItemEditorFactory(QItemEditorFactory):
                                    DateCoordItemDelegate.COORD_MAX)
             doubleSpinBox.setSingleStep(DateCoordItemDelegate.COORD_STEP)
             return doubleSpinBox
+        elif userType == QVariant.DateTime:
+            datetimeedit = QDateTimeEdit(parent)
+            datetimeedit.setDisplayFormat(self.model.dateTimeFormat())
+            return datetimeedit
         else:
             return super(DateCoordItemEditorFactory,
                          self).createEditor(userType, parent)
@@ -264,7 +269,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         """Configure the table view and actions
         """
         itemDelegate = DateCoordItemDelegate(self.model)
-        itemDelegate.setItemEditorFactory(DateCoordItemEditorFactory())
+        itemDelegate.setItemEditorFactory(DateCoordItemEditorFactory(self.model))
         for col in range(self.model.columnCount()):
             header = self.model.headerData(col, Qt.Horizontal)
             if header == labels['X'] or header == labels['Y'] or \
