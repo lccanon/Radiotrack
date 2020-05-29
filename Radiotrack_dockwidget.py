@@ -342,10 +342,10 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             ids.add(self.model.item(row, col_id).text())
             date = self.model.item(row, col_date).data(Qt.EditRole)
 
-            if not isinstance(date, str) and (smallest_date is None or
+            if isinstance(date, QDateTime) and (smallest_date is None or
                                               smallest_date > date):
                 smallest_date = date
-            if not isinstance(date, str) and (biggest_date is None or
+            if isinstance(date, QDateTime) and (biggest_date is None or
                                               biggest_date < date):
                 biggest_date = date
 
