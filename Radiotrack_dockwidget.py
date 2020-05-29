@@ -212,9 +212,14 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.idFilter.setCurrentIndex(filter_index)
         self.idFilter.currentTextChanged.connect(self.filter)
 
-        # XXX update the filter on the date (keep a boolean stating
-        # whether the datetime filter was set, and if not reinit it
-        # with the new value if datetime has been touched)
+        # Keep rows with modified dates (could lead to other rows
+        # being showed, but better than disappearing edited rows)
+        content = item.data(Qt.EditRole)
+        if isinstance(content, QDateTime):
+            if content < self.dateTimeStart.dateTime():
+                self.dateTimeStart.setDateTime(content)
+            if content > self.dateTimeEnd.dateTime():
+                self.dateTimeEnd.setDateTime(content)
 
         # Re-apply filter
         self.filter()
