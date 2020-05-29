@@ -128,17 +128,16 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         """Link DateTimeEdit"""
         self.dateTimeStart.setSyncDateTime(self.dateTimeEnd)
         """Date format selection"""
+        self.dateComboBox.currentTextChanged.connect(self.dateTimeStart.setDisplayFormat)
+        self.dateComboBox.currentTextChanged.connect(self.dateTimeEnd.setDisplayFormat)
+        self.dateComboBox.currentTextChanged.connect(self.setDateTimeFormat)
+        # Date format may change biggest and largest known datetimes
+        self.dateComboBox.currentTextChanged.connect(self.reset_filter)
         self.dateComboBox.addItem("yyyy-MM-dd hh:mm:ss")
         self.dateComboBox.addItem("d/M/yyyy hh:mm:ss")
         self.dateComboBox.addItem("M/d/yyyy hh:mm:ss")
         self.dateComboBox.addItem("hh:mm:ss d/M/yyyy")
         self.dateComboBox.addItem("hh:mm:ss M/d/yyyy")
-        self.dateComboBox.currentTextChanged.connect(self.setDateTimeFormat)
-        self.dateComboBox.currentTextChanged.connect(self.dateTimeStart.setDisplayFormat)
-        self.dateComboBox.currentTextChanged.connect(self.dateTimeEnd.setDisplayFormat)
-        # Date format may change biggest and largest known datetimes
-        self.dateComboBox.currentTextChanged.connect(self.reset_filter)
-        self.dateComboBox.setCurrentIndex(0)
         """Set segment length"""
         self.segmentLength.valueChanged.connect(set_segment_length)
         """Set CRS"""
