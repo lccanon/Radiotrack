@@ -137,8 +137,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.dateComboBox.currentTextChanged.connect(self.dateTimeStart.setDisplayFormat)
         self.dateComboBox.currentTextChanged.connect(self.dateTimeEnd.setDisplayFormat)
         self.dateComboBox.currentTextChanged.connect(self.setDateTimeFormat)
-        # Date format may change biggest and largest known datetimes
-        self.dateComboBox.currentTextChanged.connect(self.reset_filter)
         self.dateComboBox.addItem("yyyy-MM-dd hh:mm:ss")
         self.dateComboBox.addItem("d/M/yyyy hh:mm:ss")
         self.dateComboBox.addItem("M/d/yyyy hh:mm:ss")
