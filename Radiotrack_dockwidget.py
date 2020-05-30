@@ -149,19 +149,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.projectCrs.clicked.connect(set_project_CRS)
         self.demoButton.clicked.connect(self.import_demo)
 
-    def navigateRightTab(self):
-        currentIndex=(self.tabWidget.currentIndex()+1)%self.tabWidget.count()
-        self.tabWidget.setCurrentIndex(currentIndex)
-
-    def navigateLeftTab(self):
-        currentIndex=(self.tabWidget.currentIndex()-1)%self.tabWidget.count()
-        self.tabWidget.setCurrentIndex(currentIndex)
-
-    def import_demo(self, checked):
-        THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-        my_file = os.path.join(THIS_FOLDER, "./Documentation/example.csv")
-        self.import_file(checked, filename = my_file)
-
     def refresh(self, item):
         """Handle table edits
 
@@ -194,18 +181,13 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         else:
             self.filter()
 
-    def setDateTimeFormat(self, datetime_format):
-        self.model.itemChanged.disconnect()
-        self.model.setDateTimeFormat(datetime_format)
-        self.model.itemChanged.connect(self.refresh)
+    def navigateRightTab(self):
+        currentIndex=(self.tabWidget.currentIndex()+1)%self.tabWidget.count()
+        self.tabWidget.setCurrentIndex(currentIndex)
 
-    def clear(self):
-        clear_layers()
-        self.model.clear()
-        self.currentProjectText.clear()
-        # Clear filter tab view
-        self.clear_filter()
-        QgsMessageLog.logMessage('Cleared layers and table', 'Radiotrack', level=message_log_levels["Info"])
+    def navigateLeftTab(self):
+        currentIndex=(self.tabWidget.currentIndex()-1)%self.tabWidget.count()
+        self.tabWidget.setCurrentIndex(currentIndex)
 
     def import_file(self, checked, filename = None):
         """Import a file: displays a dialog to select the file and load it
@@ -259,6 +241,14 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                 if save_array_to_csv(array, filename):
                     self.currentProjectText.setText(filename)
                     iface.messageBar().pushInfo(u'Radiotrack: ', u'CSV file saved.')
+
+    def clear(self):
+        clear_layers()
+        self.model.clear()
+        self.currentProjectText.clear()
+        # Clear filter tab view
+        self.clear_filter()
+        QgsMessageLog.logMessage('Cleared layers and table', 'Radiotrack', level=message_log_levels["Info"])
 
     def filter(self):
         if self.model.rowCount() == 0:
@@ -378,9 +368,12 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         if biggest_date is not None:
             self.dateTimeEnd.setDateTime(biggest_date)
 
-    def clear_filter(self):
-        self.idFilter.currentTextChanged.disconnect()
-        self.idFilter.setCurrentIndex(0)
-        self.idFilter.currentTextChanged.connect(self.filter)
-        for i in range(1, self.idFilter.count()):
-            self.idFilter.removeItem(1)
+    def setDateTimeFormat(self, datetime_format):
+        self.model.itemChanged.disconnect()
+        self.model.setDateTimeFormat(datetime_format)
+        self.model.itemChanged.connect(self.refresh)
+
+    def import_demo(self, checked):
+        THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+        my_file = os.path.join(THIS_FOLDER, "./Documentation/example.csv")
+        self.import_file(checked, filename = my_file)

@@ -226,7 +226,10 @@ Any previously loaded data will be replaced. (Ctrl+Alt+I)</string>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_4">
                 <item>
-                 <widget class="QCheckBox" name="constantInterval">
+                 <widget class="QCheckBox" name="dateTimeFixedInterval">
+                  <property name="toolTip">
+                   <string>Define whether the interval between both datetime should remain fixed.</string>
+                  </property>
                   <property name="text">
                    <string>Fixed interval</string>
                   </property>
