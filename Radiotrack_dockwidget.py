@@ -123,6 +123,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.idFilter.currentTextChanged.connect(self.filter_update)
         self.dateTimeStart.dateTimeChanged.connect(self.filter)
         self.dateTimeEnd.dateTimeChanged.connect(self.filter)
+        self.dateTimeFixedInterval.clicked.connect(self.link_datetime_edit)
         self.dateTimeAdjust.clicked.connect(self.adjust_datetime_filter)
         self.position.stateChanged.connect(self.filter)
         self.azimuth.stateChanged.connect(self.filter)
@@ -131,8 +132,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.selected.stateChanged.connect(self.filter)
         self.resetFilterButton.clicked.connect(self.reset_filter)
         self.tableView.horizontalHeader().sortIndicatorChanged.connect(self.filter)
-        """Link DateTimeEdit"""
-        self.dateTimeStart.setSyncDateTime(self.dateTimeEnd)
         """Date format selection"""
         self.dateComboBox.currentTextChanged.connect(self.dateTimeStart.setDisplayFormat)
         self.dateComboBox.currentTextChanged.connect(self.dateTimeEnd.setDisplayFormat)
@@ -346,6 +345,15 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.idFilter.setCurrentIndex(0)
         for i in range(1, self.idFilter.count()):
             self.idFilter.removeItem(1)
+
+    def link_datetime_edit(self):
+        """Link DateTimeEdit"""
+        if self.dateTimeStart.syncDateTime is None:
+            self.dateTimeStart.setSyncDateTime(self.dateTimeEnd)
+            self.dateTimeEnd.setSyncDateTime(self.dateTimeStart)
+        else:
+            self.dateTimeStart.setSyncDateTime(None)
+            self.dateTimeEnd.setSyncDateTime(None)
 
     def adjust_datetime_filter(self):
         smallest_date = None
