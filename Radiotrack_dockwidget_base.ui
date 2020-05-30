@@ -216,8 +216,23 @@ Any previously loaded data will be replaced. (Ctrl+Alt+I)</string>
                   <property name="wrapping">
                    <bool>true</bool>
                   </property>
-                  <property name="toolTip">
-                   <string>Set this field some time after the "From" one.</string>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_4">
+                <item>
+                 <widget class="QCheckBox" name="constantInterval">
+                  <property name="text">
+                   <string>Fixed interval</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="dateTimeAdjust">
+                  <property name="text">
+                   <string>Adjust to data</string>
                   </property>
                  </widget>
                 </item>

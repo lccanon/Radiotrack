@@ -124,6 +124,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.idFilter.currentTextChanged.connect(self.filter)
         self.dateTimeStart.dateTimeChanged.connect(self.filter)
         self.dateTimeEnd.dateTimeChanged.connect(self.filter)
+        self.dateTimeAdjust.clicked.connect(self.adjust_datetime_filter)
         self.position.stateChanged.connect(self.filter)
         self.azimuth.stateChanged.connect(self.filter)
         self.datetime.stateChanged.connect(self.filter)
@@ -334,39 +335,47 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
 
     def reset_filter(self):
         ids = set()
-        smallest_date = None
-        biggest_date = None
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
         if headers == []:
             return
         col_id = headers.index('id')
-        col_date = headers.index('datetime')
         for row in range(self.model.rowCount()):
             ids.add(self.model.item(row, col_id).text())
-            date = self.model.item(row, col_date).data(Qt.EditRole)
-
-            if isinstance(date, QDateTime) and (smallest_date is None or
-                                              smallest_date > date):
-                smallest_date = date
-            if isinstance(date, QDateTime) and (biggest_date is None or
-                                              biggest_date < date):
-                biggest_date = date
 
         self.idFilter.setCurrentIndex(0)
         self.clear_filter()
         for filter_id in sorted(ids):
             self.idFilter.addItem(filter_id)
 
-        if smallest_date is not None:
-            self.dateTimeStart.setDateTime(smallest_date)
-        if biggest_date is not None:
-            self.dateTimeEnd.setDateTime(biggest_date)
+        self.dateTimeStart.setDateTime(self.dateTimeStart.minimumDateTime())
+        self.dateTimeEnd.setDateTime(QDateTime.currentDateTime())
         self.position.setChecked(False)
         self.azimuth.setChecked(False)
         self.datetime.setChecked(False)
         self.biangulation.setChecked(False)
         self.selected.setChecked(False)
+
+    def adjust_datetime_filter(self):
+        smallest_date = None
+        biggest_date = None
+        headers = [self.model.headerData(col, Qt.Horizontal)
+                   for col in range(self.model.columnCount())]
+        if headers == []:
+            return
+        col_date = headers.index('datetime')
+        for row in range(self.model.rowCount()):
+            date = self.model.item(row, col_date).data(Qt.EditRole)
+            if isinstance(date, QDateTime) and (smallest_date is None or
+                                              smallest_date > date):
+                smallest_date = date
+            if isinstance(date, QDateTime) and (biggest_date is None or
+                                              biggest_date < date):
+                biggest_date = date
+        if smallest_date is not None:
+            self.dateTimeStart.setDateTime(smallest_date)
+        if biggest_date is not None:
+            self.dateTimeEnd.setDateTime(biggest_date)
 
     def clear_filter(self):
         self.idFilter.currentTextChanged.disconnect()
