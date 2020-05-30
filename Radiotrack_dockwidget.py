@@ -120,8 +120,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.clearButton.setShortcut("Ctrl+Alt+C")
         """Filter actions"""
         self.idFilter.addItem("All")
-        self.resetFilterButton.clicked.connect(self.reset_filter)
-        self.idFilter.currentTextChanged.connect(self.filter)
+        self.idFilter.currentTextChanged.connect(self.filter_update)
         self.dateTimeStart.dateTimeChanged.connect(self.filter)
         self.dateTimeEnd.dateTimeChanged.connect(self.filter)
         self.dateTimeAdjust.clicked.connect(self.adjust_datetime_filter)
@@ -130,6 +129,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.datetime.stateChanged.connect(self.filter)
         self.biangulation.stateChanged.connect(self.filter)
         self.selected.stateChanged.connect(self.filter)
+        self.resetFilterButton.clicked.connect(self.reset_filter)
         self.tableView.horizontalHeader().sortIndicatorChanged.connect(self.filter)
         """Link DateTimeEdit"""
         self.dateTimeStart.setSyncDateTime(self.dateTimeEnd)
@@ -187,36 +187,12 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.model.itemChanged.connect(self.refresh)
         QgsMessageLog.logMessage('Project refreshed', 'Radiotrack', level=message_log_levels["Info"])
 
-        # Update filter id list
-        # XXX abstract this code in a function (until filter) and
-        # merge with similar code in reset_filter
-        # XXX reinit only if id has been touched
-        ids = set()
-        headers = [self.model.headerData(col, Qt.Horizontal)
-                   for col in range(self.model.columnCount())]
-        if headers == []:
-            return
-        col_id = headers.index('id')
-        for row in range(self.model.rowCount()):
-            ids.add(self.model.item(row, col_id).text())
-
-        filter_index = 0
-        filter_id = self.idFilter.currentText()
-        self.idFilter.currentTextChanged.disconnect()
-        self.idFilter.setCurrentIndex(0)
-        for i in range(1, self.idFilter.count()):
-            self.idFilter.removeItem(1)
-        index = 0
-        for id in sorted(ids):
-            index += 1
-            if filter_id == id:
-                filter_index = index
-            self.idFilter.addItem(id)
-        self.idFilter.setCurrentIndex(filter_index)
-        self.idFilter.currentTextChanged.connect(self.filter)
-
-        # Re-apply filter
-        self.filter()
+        # Re-apply filter and update filter id list
+        header = self.model.headerData(item.column(), Qt.Horizontal)
+        if header == 'id':
+            self.filter_update()
+        else:
+            self.filter()
 
     def setDateTimeFormat(self, datetime_format):
         self.model.itemChanged.disconnect()
@@ -250,7 +226,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Update main and filter tab views
         self.currentProjectText.setText(filename)
         self.update_view()
-        self.reset_filter()
+        self.init_filter()
         # Update canvas
         self.layer_suffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
         create_layers(self.model.get_all(), self.layer_suffix)
@@ -322,21 +298,52 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
 
-    def reset_filter(self):
-        ids = set()
+    # Filter values and update list of ids
+    def filter_update(self):
+        self.filter()
+        # Remove orphan ids if not selected
+        # Find id column
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
         if headers == []:
             return
         col_id = headers.index('id')
+        # Get ids in data
+        ids = set()
         for row in range(self.model.rowCount()):
             ids.add(self.model.item(row, col_id).text())
+        # Add current filtered ids even if absent from data
+        filter_id = self.idFilter.currentText()
+        if self.idFilter.currentIndex() == 0:
+            self.clear_filter()
+            self.idFilter.addItems(sorted(ids))
+        else:
+            ids.add(filter_id)
+            ids = sorted(ids)
+            self.idFilter.currentTextChanged.disconnect()
+            self.clear_filter()
+            self.idFilter.addItems(ids)
+            # Put combo index back to initial value
+            self.idFilter.setCurrentIndex(ids.index(filter_id) + 1)
+            self.idFilter.currentTextChanged.connect(self.filter_update)
 
-        self.idFilter.setCurrentIndex(0)
+    # Initial population of ids with available ones in data
+    def init_filter(self):
+        ids = set()
+        headers = [self.model.headerData(col, Qt.Horizontal)
+                   for col in range(self.model.columnCount())]
+        if headers == []:
+            return
+        # Get ids in data
+        col_id = headers.index('id')
+        for row in range(self.model.rowCount()):
+            ids.add(self.model.item(row, col_id).text())
         self.clear_filter()
-        for filter_id in sorted(ids):
-            self.idFilter.addItem(filter_id)
+        self.idFilter.addItems(sorted(ids))
+        self.reset_filter()
 
+    def reset_filter(self):
+        self.idFilter.setCurrentIndex(0)
         self.dateTimeStart.setDateTime(self.dateTimeStart.minimumDateTime())
         self.dateTimeEnd.setDateTime(QDateTime.currentDateTime())
         self.position.setChecked(False)
@@ -344,6 +351,11 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.datetime.setChecked(False)
         self.biangulation.setChecked(False)
         self.selected.setChecked(False)
+
+    def clear_filter(self):
+        self.idFilter.setCurrentIndex(0)
+        for i in range(1, self.idFilter.count()):
+            self.idFilter.removeItem(1)
 
     def adjust_datetime_filter(self):
         smallest_date = None
