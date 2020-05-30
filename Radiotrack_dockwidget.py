@@ -262,19 +262,20 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         for row in range(self.model.rowCount()):
             date = self.model.item(row, col_date).data(Qt.EditRole)
             filter_id = self.idFilter.currentText()
-            if (filter_id == "All" or self.model.item(row, col_id).text() == filter_id) and \
-               (isinstance(date, str) or
-                (date >= self.dateTimeStart.dateTime() and
-                 date <= self.dateTimeEnd.dateTime())) and \
-                 (not self.position.isChecked() or
-                  self.model.validPosition(row)) and \
-                  (not self.azimuth.isChecked() or
-                   self.model.validAzimuth(row)) and \
-                   (not self.datetime.isChecked() or
-                    self.model.validDatetime(row)) and \
-                    (not self.biangulation.isChecked() or
-                     self.model.biangulated(row)) and \
-                     (not self.selected.isChecked() or self.model.selected(row)):
+            if (filter_id == "All" or
+                self.model.item(row, col_id).data(Qt.EditRole) == filter_id) and \
+                (isinstance(date, str) or
+                 (date >= self.dateTimeStart.dateTime() and
+                  date <= self.dateTimeEnd.dateTime())) and \
+                  (not self.position.isChecked() or
+                   self.model.validPosition(row)) and \
+                   (not self.azimuth.isChecked() or
+                    self.model.validAzimuth(row)) and \
+                    (not self.datetime.isChecked() or
+                     self.model.validDatetime(row)) and \
+                     (not self.biangulation.isChecked() or
+                      self.model.biangulated(row)) and \
+                      (not self.selected.isChecked() or self.model.selected(row)):
                 if self.tableView.isRowHidden(row):
                     rows_add.append(self.model.id(row))
                     self.tableView.setRowHidden(row, False)
@@ -300,7 +301,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Get ids in data
         ids = set()
         for row in range(self.model.rowCount()):
-            ids.add(self.model.item(row, col_id).text())
+            ids.add(self.model.item(row, col_id).data(Qt.EditRole))
         # Add current filtered ids even if absent from data
         filter_id = self.idFilter.currentText()
         if self.idFilter.currentIndex() == 0:
@@ -326,7 +327,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Get ids in data
         col_id = headers.index('id')
         for row in range(self.model.rowCount()):
-            ids.add(self.model.item(row, col_id).text())
+            ids.add(self.model.item(row, col_id).data(Qt.EditRole))
         self.clear_filter()
         self.idFilter.addItems(sorted(ids))
         self.reset_filter()
