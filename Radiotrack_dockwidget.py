@@ -27,7 +27,7 @@ from qgis.utils import iface
 from qgis.gui import QgsMessageBar
 import qgis
 
-from qgis.PyQt.QtGui import QKeySequence
+from qgis.PyQt.QtGui import QKeySequence, QPalette
 from qgis.PyQt.QtCore import Qt, pyqtSignal, QVariant, QDateTime
 from qgis.PyQt.QtWidgets import QWidget, QFileDialog
 
@@ -129,6 +129,10 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.azimuth.stateChanged.connect(self.filter)
         self.datetime.stateChanged.connect(self.filter)
         self.biangulation.stateChanged.connect(self.filter)
+        """Decoration for biangulation"""
+        palette = self.biangulation.palette()
+        palette.setColor(QPalette.Background, self.model.BRUSH_BIANGULATED_ROW.color())
+        self.biangulation.setPalette(palette)
         self.selected.stateChanged.connect(self.filter)
         self.resetFilterButton.clicked.connect(self.reset_filter)
         self.tableView.horizontalHeader().sortIndicatorChanged.connect(self.filter)
