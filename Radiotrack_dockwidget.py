@@ -130,8 +130,9 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.datetime.stateChanged.connect(self.filter)
         self.biangulation.stateChanged.connect(self.filter)
         """Decoration for biangulation"""
+        self.biangulation.setAutoFillBackground(True)
         palette = self.biangulation.palette()
-        palette.setColor(QPalette.Background, self.model.BRUSH_BIANGULATED_ROW.color())
+        palette.setBrush(QPalette.Button, self.model.BRUSH_BIANGULATED_ROW)
         self.biangulation.setPalette(palette)
         self.selected.stateChanged.connect(self.filter)
         self.resetFilterButton.clicked.connect(self.reset_filter)
