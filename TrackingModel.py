@@ -276,8 +276,8 @@ class BiangulationDetector:
         id_sp_index = headers.index('id')
         date_index = headers.index('datetime')
         row_id = self.model.id(row)
-        row_id_sp = self.model.item(row, id_sp_index).data(Qt.EditRole)
-        row_date = self.model.item(row, date_index).data(Qt.EditRole)
+        row_id_sp = self.model.item(row, id_sp_index).text()
+        row_date = self.model.item(row, date_index).text()
 
         # Remove previous values
         for emitter_id in self.rows_for_date:
@@ -297,6 +297,6 @@ class BiangulationDetector:
                    for col in range(self.model.columnCount())]
         id_sp_index = headers.index('id')
         date_index = headers.index('datetime')
-        row_id_sp = self.model.item(row, id_sp_index).data(Qt.EditRole)
-        row_date = self.model.item(row, date_index).data(Qt.EditRole)
+        row_id_sp = self.model.item(row, id_sp_index).text()
+        row_date = self.model.item(row, date_index).text()
         return len(self.rows_for_date[row_id_sp][row_date]) >= 2

@@ -269,7 +269,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             date = self.model.item(row, col_date).data(Qt.EditRole)
             filter_id = self.idFilter.currentText()
             if (filter_id == "All" or
-                self.model.item(row, col_id).data(Qt.EditRole) == filter_id) and \
+                self.model.item(row, col_id).text() == filter_id) and \
                 (isinstance(date, str) or
                  (date >= self.dateTimeStart.dateTime() and
                   date <= self.dateTimeEnd.dateTime())) and \
@@ -307,7 +307,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Get ids in data
         ids = set()
         for row in range(self.model.rowCount()):
-            ids.add(self.model.item(row, col_id).data(Qt.EditRole))
+            ids.add(self.model.item(row, col_id).text())
         # Add current filtered ids even if absent from data
         filter_id = self.idFilter.currentText()
         if self.idFilter.currentIndex() == 0:
@@ -333,7 +333,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Get ids in data
         col_id = headers.index('id')
         for row in range(self.model.rowCount()):
-            ids.add(self.model.item(row, col_id).data(Qt.EditRole))
+            ids.add(self.model.item(row, col_id).text())
         self.clear_filter()
         self.idFilter.addItems(sorted(ids))
         self.reset_filter()
