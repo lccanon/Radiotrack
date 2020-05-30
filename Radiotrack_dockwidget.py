@@ -166,23 +166,24 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
 
         # Disable auto refresh because we may change cells' colors
         self.model.itemChanged.disconnect()
-
         # Reparse data
         self.model.update(item)
-        # Add geometry if required
-        row_info = self.model.get_row(item.row())
-        add_line_and_point([row_info])
-
         # Enable auto refresh again
         self.model.itemChanged.connect(self.refresh)
-        QgsMessageLog.logMessage('Project refreshed', 'Radiotrack', level=message_log_levels["Info"])
+
+        header = self.model.headerData(item.column(), Qt.Horizontal)
+        # Add geometry if required
+        if header == 'lon' or header == 'lat' or header == 'azi':
+            row_info = self.model.get_row(item.row())
+            add_line_and_point([row_info])
 
         # Re-apply filter and update filter id list
-        header = self.model.headerData(item.column(), Qt.Horizontal)
         if header == 'id':
             self.filter_update()
         else:
             self.filter()
+
+        QgsMessageLog.logMessage('Project refreshed', 'Radiotrack', level=message_log_levels["Info"])
 
     def navigateRightTab(self):
         currentIndex=(self.tabWidget.currentIndex()+1)%self.tabWidget.count()
