@@ -64,7 +64,7 @@ else:
     from qgis.core import Qgis as QGis
 
 if QGis.QGIS_VERSION_INT >= 30000:
-    from qgis.PyQt.QtWidgets import QAction, QDockWidget, QTableView, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QCheckBox, QDateTimeEdit
+    from qgis.PyQt.QtWidgets import QAction, QDockWidget, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QCheckBox, QDateTimeEdit
     from qgis.core import QgsProject
     from qgis.core import QgsPointXY
 
@@ -77,7 +77,7 @@ if QGis.QGIS_VERSION_INT >= 30000:
     }
     message_bar_levels = message_log_levels
 else:
-    from qgis.PyQt.QtGui import QAction, QDockWidget, QTableView, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QCheckBox, QDateTimeEdit
+    from qgis.PyQt.QtGui import QAction, QDockWidget, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QCheckBox, QDateTimeEdit
     from qgis.core import QgsMapLayerRegistry as QgsProject
     from qgis.core import QgsPoint
 

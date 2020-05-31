@@ -28,15 +28,15 @@ from qgis.gui import QgsMessageBar
 import qgis
 
 from qgis.PyQt.QtGui import QKeySequence, QPalette
-from qgis.PyQt.QtCore import Qt, pyqtSignal, QVariant, QDateTime
-from qgis.PyQt.QtWidgets import QWidget, QFileDialog
+from qgis.PyQt.QtCore import Qt, pyqtSignal, QVariant, QDateTime, QRect
+from qgis.PyQt.QtWidgets import QWidget, QFileDialog, QHeaderView, QStyle, QStyleOptionButton
 
 from .compat import QShortcut
 
 from .algorithmNewPoint import dst
 
 from .compat import QDoubleSpinBox, QDateTimeEdit
-from .compat import QDockWidget, QTableView, QItemEditorFactory, QStyledItemDelegate, message_log_levels, message_bar_levels
+from .compat import QDockWidget, QItemEditorFactory, QStyledItemDelegate, message_log_levels, message_bar_levels
 
 from .manageDocumentation import importDoc
 
@@ -90,11 +90,45 @@ class DateCoordItemEditorFactory(QItemEditorFactory):
                          self).createEditor(userType, parent)
 
 
+class CheckBoxHeader(QHeaderView):
+    def __init__(self, orientation, parent):
+        super(CheckBoxHeader, self).__init__(orientation, parent)
+        self.isOn = True
+
+    def paintSection(self, painter, rect, logicalIndex):
+        painter.save()
+        super(CheckBoxHeader, self).paintSection(painter, rect, logicalIndex)
+        painter.restore()
+        if logicalIndex == 0:
+            option = QStyleOptionButton()
+            option.rect = QRect(3, 3, 14, 14)
+            if self.isOn:
+                option.state = QStyle.State_On
+            else:
+                option.state = QStyle.State_Off
+            self.style().drawPrimitive(QStyle.PE_IndicatorCheckBox, option, painter)
+
+    def mousePressEvent(self, event):
+        pos = event.x()
+        logicalIndex = self.logicalIndexAt(pos)
+        if logicalIndex == 0:
+            tableView = self.parent()
+            n = tableView.model().rowCount()
+            visible_rows = [i for i in range(n) if not tableView.isRowHidden(i)]
+            if self.isOn:
+                state = Qt.Unchecked
+            else:
+                state = Qt.Checked
+            for row in visible_rows:
+                tableView.model().setSelected(row, state)
+            self.isOn = not self.isOn
+        self.update()
+        super(CheckBoxHeader, self).mousePressEvent(event)
+
+
 class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
 
-    """Variables membre"""
-
-    layer_suffix = ''
+    """Variables membres"""
 
     def __init__(self, parent=None):
         """Constructor."""
@@ -106,6 +140,12 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.model = TrackingModel(self)
         self.model.itemChanged.connect(self.refresh)
         self.tableView.setModel(self.model)
+        self.tableView.setSortingEnabled(True)
+        checkboxHeader = CheckBoxHeader(Qt.Horizontal, self.tableView)
+        checkboxHeader.setSectionsClickable(True)
+        checkboxHeader.setHighlightSections(True)
+        checkboxHeader.setMinimumSectionSize(0)
+        self.tableView.setHorizontalHeader(checkboxHeader)
         """Navigation in QTableWidget shortcut"""
         QShortcut(QKeySequence("Ctrl+PgDown"), self).activated.connect(self.navigateRightTab)
         QShortcut(QKeySequence("Ctrl+PgUp"), self).activated.connect(self.navigateLeftTab)

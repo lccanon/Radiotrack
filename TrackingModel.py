@@ -6,7 +6,6 @@ from .csv_utils import types
 from .compat import message_log_levels, get_field
 
 SELECTED_COL_POS = 0
-SELECTED_COL_ID = "select"
 
 """Indicates how many columns were added into the model before the table_headers
 from the standard CSV files."""
@@ -86,6 +85,9 @@ class TrackingModel(QStandardItemModel):
     def selected(self, row):
         return self.item(row, SELECTED_COL_POS).checkState() == Qt.Checked
 
+    def setSelected(self, row, state):
+        self.item(row, SELECTED_COL_POS).setCheckState(state)
+
     def set_brush_row(self, row, brush):
         for col in range(self.columnCount()):
             current_item = self.item(row, col)
@@ -130,12 +132,12 @@ class TrackingModel(QStandardItemModel):
         is_first_row = True
         for row in array:
             if is_first_row:
-                row.insert(SELECTED_COL_POS, SELECTED_COL_ID)
+                row.insert(SELECTED_COL_POS, '')
                 self.setHorizontalHeaderLabels(row)
                 is_first_row = False
             else:
                 items = []
-                checkbox = TrackingItem("")
+                checkbox = TrackingItem('')
                 checkbox.setCheckable(True)
                 checkbox.setCheckState(Qt.Checked)
                 items.append(checkbox)
