@@ -39,8 +39,6 @@ def create_layers(array, layer_suffix = ""):
     draw_points(array, POINT_LAYER_BASE_NAME + layer_suffix)
     set_filter([row['id_observation'] for row in array], False)
 
-    updateZoom()
-
 def updateZoom():
     global curr_extent
 
@@ -62,6 +60,11 @@ def updateFullExtent():
     geom = QgsGeometry.fromRect(full_extent)
     full_extent = xform.transform(full_extent)
 
+def autoZoom():
+    current_extent = iface.mapCanvas().extent()
+    return current_extent.contains(curr_extent) and \
+       curr_extent.contains(current_extent)
+
 def set_EPSG4326():
     global CRS
     CRS = QgsCoordinateReferenceSystem('epsg:4326')
@@ -77,8 +80,10 @@ def updateCRS():
         return
     layer_line.setCrs(CRS)
     layer_line.triggerRepaint()
+    layer_line.updateExtents()
     layer_point.setCrs(CRS)
     layer_point.triggerRepaint()
+    layer_point.updateExtents()
     updateZoom()
 
 def draw_points(rows, layer_name):
@@ -158,27 +163,22 @@ def make_line_geometry(row_data):
         return QgsGeometry()
 
 def add_line_and_point(rows):
-    layer_point.startEditing()
     layer_line.startEditing()
+    layer_point.startEditing()
 
     for row in rows:
-        new_geometry = make_point_geometry(row)
-        layer_point.changeGeometry(row['id_observation'], new_geometry)
         new_geometry = make_line_geometry(row)
         layer_line.changeGeometry(row['id_observation'], new_geometry)
+        new_geometry = make_point_geometry(row)
+        layer_point.changeGeometry(row['id_observation'], new_geometry)
 
-    layer_point.commitChanges()
     layer_line.commitChanges()
+    layer_point.commitChanges()
 
-    layer_point.updateExtents()
     layer_line.updateExtents()
+    layer_point.updateExtents()
 
     set_filter([row['id_observation'] for row in rows], False)
-
-    # If zoom set has not changed, keep the default one
-    current_extent = iface.mapCanvas().extent()
-    if current_extent.contains(curr_extent) and curr_extent.contains(current_extent):
-        updateZoom()
 
 def set_filter(id_rows, is_filtered):
     if len(id_rows) == 0 or layer_point is None or layer_line is None:
@@ -188,11 +188,17 @@ def set_filter(id_rows, is_filtered):
     fieldIdx = layer_point.dataProvider().fieldNameIndex('filter')
     attrs = {feature_id: {fieldIdx: is_filtered} for feature_id in id_rows}
 
-    layer_point.dataProvider().changeAttributeValues(attrs)
-    layer_point.triggerRepaint()
-
     layer_line.dataProvider().changeAttributeValues(attrs)
     layer_line.triggerRepaint()
+    layer_line.updateExtents()
+
+    layer_point.dataProvider().changeAttributeValues(attrs)
+    layer_point.triggerRepaint()
+    layer_point.updateExtents()
+
+    # If zoom set has not changed (autozoom), adjust the zoom
+    if curr_extent is None or autoZoom():
+        updateZoom()
 
 def clear_layers():
     global layer_point
