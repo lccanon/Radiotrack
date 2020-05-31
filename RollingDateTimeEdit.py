@@ -2,7 +2,7 @@ from .compat import QDateTimeEdit
 
 class RollingDateTimeEdit(QDateTimeEdit):
     def __init__(self, parent):
-        super(QDateTimeEdit, self).__init__(parent)
+        super(RollingDateTimeEdit, self).__init__(parent)
         self.syncDateTime = None
 
     def setSyncDateTime(self, syncDateTime):

@@ -57,7 +57,7 @@ class DateCoordItemDelegate(QStyledItemDelegate):
     COORD_STEP = 0.0001 # 10 meters step
 
     def __init__(self, model):
-        super(QStyledItemDelegate, self).__init__()
+        super(DateCoordItemDelegate, self).__init__()
         self.model = model
 
     def displayText(self, value, locale):
@@ -70,7 +70,7 @@ class DateCoordItemDelegate(QStyledItemDelegate):
 
 class DateCoordItemEditorFactory(QItemEditorFactory):
     def __init__(self, model):
-        super(QItemEditorFactory, self).__init__()
+        super(DateCoordItemEditorFactory, self).__init__()
         self.model = model
 
     def createEditor(self, userType, parent):
@@ -255,8 +255,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.update_view()
         self.init_filter()
         # Update canvas
-        self.layer_suffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
-        create_layers(self.model.get_all(), self.layer_suffix)
+        layer_suffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
+        create_layers(self.model.get_all(), layer_suffix)
 
     def update_view(self):
         """Configure the table view and actions

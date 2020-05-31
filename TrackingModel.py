@@ -98,7 +98,7 @@ class TrackingModel(QStandardItemModel):
                 current_item.setBackground(brush)
 
     def update_color(self, rows):
-        """Update the color of current row and possibly other impacted rows"""
+        """Update the color of multiple rows"""
         for row in rows:
             if not self.valid(row):
                 self.set_brush_row(row, self.BRUSH_INVALID_ROW)
@@ -116,6 +116,7 @@ class TrackingModel(QStandardItemModel):
         header = self.headerData(item.column(), Qt.Horizontal)
         if header == 'id' or (item.valid() and header == 'datetime'):
             self.biangulation_detector.update_biangulation(item.row())
+            # Update the color of current row and possibly other impacted rows
             self.update_color(range(self.rowCount()))
         # Update validity color of local row in case of successful parsing
         elif success:
