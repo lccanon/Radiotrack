@@ -11,7 +11,7 @@ name=Radiotrack
 qgisMinimumVersion=3.0
 qgisMaximumVersion=3.99
 description=Visualizes radiotracking data
-version=0.8
+version=0.9
 author=Bello Fernando, Boisson Romain, Cabodi Alexis, Canon Louis-Claude, Jeannin Emile, Moyikoulou Chris-Féri, Wetzel Anthony
 
 email=louis-claude.canon@univ-fcomte.fr
