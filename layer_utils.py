@@ -70,6 +70,9 @@ def draw_lines(rows, layer_name):
     # Add the layer to the Layers panel
     QgsProject.instance().addMapLayers([layer_line])
 
+    #XXX return fids here
+    fids = [feature.id() for feature in layer_line.getFeatures()]
+
 def draw_points(rows, layer_name):
     global layer_point
     """Draw the points on a layer
@@ -103,6 +106,9 @@ def draw_points(rows, layer_name):
 
     # Add the layer to the Layers panel
     QgsProject.instance().addMapLayers([layer_point])
+
+    #XXX return ids here (check this it the same as for line)
+    ids = [feature.id() for feature in layer_point.getFeatures()]
 
 def add_line_and_point(rows):
     layer_line.startEditing()

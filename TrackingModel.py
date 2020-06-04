@@ -30,6 +30,7 @@ class TrackingModel(QStandardItemModel):
         super(TrackingModel, self).clear()
         self.biangulation_detector.clear()
 
+    #XXX rename id into fid (Feature id)
     def id(self, row):
         return self.item(row, 0).data(self.ID_ROLE)
 
