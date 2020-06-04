@@ -184,7 +184,7 @@ def set_filter(id_rows, is_filtered):
     layer_point.updateExtents()
 
     # If zoom set has not changed (autozoom), adjust the zoom
-    if curr_extent is None or autoZoom():
+    if autoZoom():
         updateZoom()
 
 def updateZoom():
@@ -207,6 +207,8 @@ def updateFullExtent():
     return xform.transform(full_extent)
 
 def autoZoom():
+    if curr_extent is None:
+        return True
     current_extent = iface.mapCanvas().extent()
     return current_extent.contains(curr_extent) and \
        curr_extent.contains(current_extent)
@@ -234,11 +236,13 @@ def updateCRS():
     layer_point.setCrs(CRS)
     layer_point.triggerRepaint()
     layer_point.updateExtents()
-    updateZoom()
+    if autoZoom():
+        updateZoom()
 
 def clear_layers():
     global layer_point
     global layer_line
+    global curr_extent
 
     if layer_point is not None:
         try:
@@ -253,6 +257,8 @@ def clear_layers():
             QgsMessageLog.logMessage('Layer already removed', 'Radiotrack', level=message_log_levels["Info"])
         layer_line = None
     iface.mapCanvas().refresh()
+
+    curr_extent = None
 
 # unused method
 def clear_layer(layer_name):
