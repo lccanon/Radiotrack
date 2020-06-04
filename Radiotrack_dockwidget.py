@@ -178,6 +178,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.selected.stateChanged.connect(self.filter)
         self.resetFilterButton.clicked.connect(self.reset_filter)
         self.tableView.horizontalHeader().sortIndicatorChanged.connect(self.filter)
+        # Put all values to default ones (in particular for the date)
+        self.reset_filter()
         """Date format selection"""
         self.dateComboBox.currentTextChanged.connect(self.dateTimeStart.setDisplayFormat)
         self.dateComboBox.currentTextChanged.connect(self.dateTimeEnd.setDisplayFormat)
@@ -264,7 +266,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Update main and filter tab views
         self.currentProjectText.setText(filename)
         self.update_view()
-        self.init_filter()
+        # Initial population of ids with available ones in data
+        self.filter_update()
 
     def update_view(self):
         """Configure the table view and actions
@@ -346,12 +349,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         set_filter(rows_del, True)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
-
-    # Initial population of ids with available ones in data
-    def init_filter(self):
-        self.update_ids()
-        # Put all values to default ones (in particular for the date)
-        self.reset_filter()
 
     def update_ids(self):
         # Remove orphan ids if not selected
