@@ -21,7 +21,6 @@ LINE_LAYER_BASE_NAME = "lines"
 POINT_LAYER_BASE_NAME = "points"
 
 # Autozoom and properties
-full_extent = None
 curr_extent = None
 segment_length = 1
 CRS = QgsCoordinateReferenceSystem('epsg:4326')
@@ -191,15 +190,13 @@ def set_filter(id_rows, is_filtered):
 def updateZoom():
     global curr_extent
 
-    updateFullExtent()
+    full_extent = updateFullExtent()
     # Does not zoom to full extent because it does not integrate well
     # with a basemap
     iface.mapCanvas().zoomToFeatureExtent(full_extent)
     curr_extent = iface.mapCanvas().extent()
 
 def updateFullExtent():
-    global full_extent
-
     full_extent = layer_point.extent()
     full_extent.combineExtentWith(layer_line.extent())
     # Assumes that the CRS is the same in both layers
@@ -207,7 +204,7 @@ def updateFullExtent():
     destCrs = QgsProject.instance().crs()
     xform = QgsCoordinateTransform(sourceCrs, destCrs, QgsProject.instance())
     geom = QgsGeometry.fromRect(full_extent)
-    full_extent = xform.transform(full_extent)
+    return xform.transform(full_extent)
 
 def autoZoom():
     current_extent = iface.mapCanvas().extent()
