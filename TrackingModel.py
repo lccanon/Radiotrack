@@ -38,17 +38,19 @@ class TrackingModel(QStandardItemModel):
 
     def setDateTimeFormat(self, datetime_format):
         self.datetime_format = datetime_format
+        #XXX remove check eventually
+        if self.rowCount() == 0:
+            return
         headers = [self.headerData(col, Qt.Horizontal)
                    for col in range(self.columnCount())]
-        if headers != []:
-            date_index = headers.index('datetime')
-            update_color = False
-            for row in range(self.rowCount()):
-                if self.item(row, date_index).parse():
-                    update_color = True
-                    self.biangulation_detector.update_biangulation(row)
-            if update_color:
-                self.update_color(range(self.rowCount()))
+        date_index = headers.index('datetime')
+        update_color = False
+        for row in range(self.rowCount()):
+            if self.item(row, date_index).parse():
+                update_color = True
+                self.biangulation_detector.update_biangulation(row)
+        if update_color:
+            self.update_color(range(self.rowCount()))
 
     def dateTimeFormat(self):
         return self.datetime_format

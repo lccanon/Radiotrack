@@ -312,9 +312,9 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         QgsMessageLog.logMessage('Cleared layers and table', 'Radiotrack', level=message_log_levels["Info"])
 
     def filter(self):
+        #XXX remove check eventually
         if self.model.rowCount() == 0:
             return
-
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
         col_id = headers.index('id')
@@ -415,11 +415,14 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             self.dateTimeEnd.setSyncDateTime(None)
 
     def adjust_datetime_filter(self):
-        smallest_date = None
-        biggest_date = None
+        #XXX remove check eventually
+        if self.model.rowCount() == 0:
+            return
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
         col_date = headers.index('datetime')
+        smallest_date = None
+        biggest_date = None
         for row in range(self.model.rowCount()):
             date = self.model.item(row, col_date).data(Qt.EditRole)
             if isinstance(date, QDateTime) and (smallest_date is None or
