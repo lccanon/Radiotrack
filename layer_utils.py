@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*
+
+from random import randrange
+
 from qgis.utils import iface
-from qgis.core import QgsVectorLayer, QgsFeature, QgsPoint, QgsGeometry, QgsField, QgsCoordinateTransform, QgsCoordinateReferenceSystem, edit
+from qgis.core import QgsVectorLayer, QgsFeature, QgsPoint, QgsGeometry, QgsField
+from qgis.core import QgsCoordinateTransform, QgsCoordinateReferenceSystem, edit
+from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererCategory, QgsMarkerSymbol
 from .algorithmNewPoint import dst
 from .compat import QgsProject, buildGeomPoint, message_log_levels
 from qgis.core import QgsMessageLog

@@ -227,14 +227,17 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         else:
             self.filter()
 
-        QgsMessageLog.logMessage('Project refreshed', 'Radiotrack', level=message_log_levels["Info"])
+        QgsMessageLog.logMessage('Project refreshed', 'Radiotrack',
+                                 level = message_log_levels["Info"])
 
     def navigateRightTab(self):
-        currentIndex=(self.tabWidget.currentIndex()+1)%self.tabWidget.count()
+        tb = self.tabWidget
+        currentIndex = (tb.currentIndex() + 1) % tb.count()
         self.tabWidget.setCurrentIndex(currentIndex)
 
     def navigateLeftTab(self):
-        currentIndex=(self.tabWidget.currentIndex()-1)%self.tabWidget.count()
+        tb = self.tabWidget
+        currentIndex = (tb.currentIndex() - 1) % tb.count()
         self.tabWidget.setCurrentIndex(currentIndex)
 
     def import_file(self, checked, filename = None):
@@ -253,30 +256,36 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.model.itemChanged.disconnect()
         self.model.load_array_in_model(csv_array)
         self.model.itemChanged.connect(self.refresh)
+        # Update canvas and create colors (must be done before
+        # initializing the filters)
+        layer_suffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
+        create_layers(self.model.get_all(), layer_suffix)
         # Update main and filter tab views
         self.currentProjectText.setText(filename)
         self.update_view()
         self.init_filter()
-        # Update canvas
-        layer_suffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
-        create_layers(self.model.get_all(), layer_suffix)
 
     def update_view(self):
         """Configure the table view and actions
+
+        Requires the colors of the individuals.
         """
         itemDelegate = DateCoordItemDelegate(self.model)
         itemDelegate.setItemEditorFactory(DateCoordItemEditorFactory(self.model))
         for col in range(self.model.columnCount()):
             header = self.model.headerData(col, Qt.Horizontal)
-            if header == labels['X'] or header == labels['Y'] or \
-               header == 'datetime':
+            if header == 'datetime' or header == 'lon' or header == 'lat':
                 self.tableView.setItemDelegateForColumn(col, itemDelegate)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
-        QgsMessageLog.logMessage('Table successfully created', 'Radiotrack', level=message_log_levels["Info"])
+        QgsMessageLog.logMessage('Table successfully created', 'Radiotrack',
+                                 level = message_log_levels["Info"])
 
     def save_as(self):
-        """Display a dialog to ask where to save, and save the current content of the table in the selected file
+        """Save selected rows
+
+        Display a dialog to ask where to save, and save the current
+        content of the table in the selected file.
         """
         filename = select_save_file()
         if filename != '':

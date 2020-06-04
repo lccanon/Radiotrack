@@ -7,7 +7,7 @@ from qgis.PyQt.QtWidgets import QFileDialog
 
 from .compat import message_log_levels, message_bar_levels, get_filename_qdialog, write_csv
 
-labels = {"Y": "lat", "X": "lon", "AZIMUT": "azi"}
+labels = {"ID": "id", "X": "lon", "Y": "lat", "AZIMUT": "azi"}
 
 types = {
     "datetime": QDateTime,
