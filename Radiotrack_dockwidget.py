@@ -353,6 +353,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         if headers == []:
             return
         self.update_ids()
+        # Put all values to default ones (in particular for the date)
+        self.reset_filter()
 
     def update_ids(self):
         # Remove orphan ids if not selected
