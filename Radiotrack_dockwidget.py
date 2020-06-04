@@ -27,7 +27,7 @@ from qgis.utils import iface
 from qgis.gui import QgsMessageBar
 import qgis
 
-from qgis.PyQt.QtGui import QKeySequence, QPalette
+from qgis.PyQt.QtGui import QKeySequence, QPalette, QColor
 from qgis.PyQt.QtCore import Qt, pyqtSignal, QVariant, QDateTime, QRect
 from qgis.PyQt.QtWidgets import QWidget, QFileDialog, QHeaderView, QStyle, QStyleOptionButton
 
@@ -40,8 +40,8 @@ from .compat import QDockWidget, QItemEditorFactory, QStyledItemDelegate, messag
 
 from .manageDocumentation import importDoc
 
-from .csv_utils import labels, select_csv_file, load_csv_to_array, save_array_to_csv, select_save_file
-from .layer_utils import create_layers, clear_layers, add_line_and_point, set_filter, set_segment_length, set_EPSG4326, set_project_CRS
+from .csv_utils import select_csv_file, load_csv_to_array, save_array_to_csv, select_save_file
+from .layer_utils import create_layers, clear_layers, add_line_and_point, set_filter, set_segment_length, set_EPSG4326, set_project_CRS, set_id, get_id_colors
 from .TrackingModel import TrackingModel
 
 
@@ -212,11 +212,14 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Enable auto refresh again
         self.model.itemChanged.connect(self.refresh)
 
-        header = self.model.headerData(item.column(), Qt.Horizontal)
         # Add geometry if required
+        header = self.model.headerData(item.column(), Qt.Horizontal)
         if header == 'lon' or header == 'lat' or header == 'azi':
             row_info = self.model.get_row(item.row())
             add_line_and_point([row_info])
+        elif header == 'id':
+            row_info = self.model.get_row(item.row())
+            set_id([row_info])
 
         # Re-apply filter and update filter id list
         if header == 'id':
@@ -334,9 +337,15 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
 
-    # Filter values and update list of ids
-    def filter_update(self):
-        self.filter()
+    # Initial population of ids with available ones in data
+    def init_filter(self):
+        headers = [self.model.headerData(col, Qt.Horizontal)
+                   for col in range(self.model.columnCount())]
+        if headers == []:
+            return
+        self.update_ids()
+
+    def update_ids(self):
         # Remove orphan ids if not selected
         # Find id column
         headers = [self.model.headerData(col, Qt.Horizontal)
@@ -349,34 +358,39 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         for row in range(self.model.rowCount()):
             ids.add(self.model.item(row, col_id).text())
         # Add current filtered ids even if absent from data
-        filter_id = self.idFilter.currentText()
-        if self.idFilter.currentIndex() == 0:
-            self.clear_filter()
-            self.idFilter.addItems(sorted(ids))
-        else:
+        curr_index = self.idFilter.currentIndex()
+        if curr_index != 0:
+            filter_id = self.idFilter.currentText()
             ids.add(filter_id)
-            ids = sorted(ids)
             self.idFilter.currentTextChanged.disconnect()
-            self.clear_filter()
-            self.idFilter.addItems(ids)
+        # Replace all combo boxes
+        self.clear_filter()
+        ids = sorted(ids)
+        self.idFilter.addItems(ids)
+        # Set color for each item in the ids combo box
+        colors = get_id_colors()
+        for i in range(1, self.idFilter.count()):
+            id = self.idFilter.itemText(i)
+            self.idFilter.setItemData(i, colors[id], Qt.BackgroundColorRole)
+        palette = self.idFilter.palette()
+        if curr_index == 0:
+            palette.setColor(QPalette.Button, QColor(Qt.white))
+        else:
+            palette.setColor(QPalette.Button, colors[filter_id])
             # Put combo index back to initial value
             self.idFilter.setCurrentIndex(ids.index(filter_id) + 1)
             self.idFilter.currentTextChanged.connect(self.filter_update)
+        self.idFilter.setPalette(palette)
 
-    # Initial population of ids with available ones in data
-    def init_filter(self):
-        ids = set()
-        headers = [self.model.headerData(col, Qt.Horizontal)
-                   for col in range(self.model.columnCount())]
-        if headers == []:
-            return
-        # Get ids in data
-        col_id = headers.index('id')
-        for row in range(self.model.rowCount()):
-            ids.add(self.model.item(row, col_id).text())
-        self.clear_filter()
-        self.idFilter.addItems(sorted(ids))
-        self.reset_filter()
+    def clear_filter(self):
+        self.idFilter.setCurrentIndex(0)
+        for i in range(1, self.idFilter.count()):
+            self.idFilter.removeItem(1)
+
+    # Filter values and update list of ids
+    def filter_update(self):
+        self.filter()
+        self.update_ids()
 
     def reset_filter(self):
         self.idFilter.setCurrentIndex(0)
@@ -387,11 +401,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.datetime.setChecked(False)
         self.biangulation.setChecked(False)
         self.selected.setChecked(False)
-
-    def clear_filter(self):
-        self.idFilter.setCurrentIndex(0)
-        for i in range(1, self.idFilter.count()):
-            self.idFilter.removeItem(1)
 
     def link_datetime_edit(self):
         """Link DateTimeEdit"""

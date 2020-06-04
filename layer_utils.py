@@ -11,18 +11,15 @@ from .csv_utils import labels
 # Store references to the layers
 layer_line = None
 layer_point = None
-full_extent = None
-curr_extent = None
-CRS = QgsCoordinateReferenceSystem('epsg:4326')
 
 LINE_LAYER_BASE_NAME = "lines"
 POINT_LAYER_BASE_NAME = "points"
 
+# Autozoom and properties
+full_extent = None
+curr_extent = None
 segment_length = 1
-
-def set_segment_length(length):
-    global segment_length
-    segment_length = length
+CRS = QgsCoordinateReferenceSystem('epsg:4326')
 
 def create_layers(array, layer_suffix = ""):
     """Create a layer based on the given model rows.
@@ -37,7 +34,154 @@ def create_layers(array, layer_suffix = ""):
     # Draw the available points on their layers
     draw_lines(array, LINE_LAYER_BASE_NAME + layer_suffix)
     draw_points(array, POINT_LAYER_BASE_NAME + layer_suffix)
+    set_id(array)
     set_filter([row['id_observation'] for row in array], False)
+
+def draw_lines(rows, layer_name):
+    global layer_line
+    """Draw the lines on a layer
+    """
+
+    # Specify the geometry type
+    layer_line = QgsVectorLayer('LineString?crs=epsg:4326', layer_name, 'memory')
+    layer_line.setCrs(CRS)
+    # Avoid warning when closing project
+    layer_line.setCustomProperty("skipMemoryLayersCheck", 1)
+    with edit(layer_line):
+        layer_line.addAttribute(QgsField("filter", QVariant.Int))
+        layer_line.addAttribute(QgsField("id", QVariant.String))
+        layer_line.addAttribute(QgsField("biangulation", QVariant.Int))
+    layer_line.setSubsetString('NOT filter')
+    prov_line = layer_line.dataProvider()
+
+    # Create and add line features
+    features = []
+    for row in rows:
+        new_geometry = make_line_geometry(row)
+        new_feature = QgsFeature()
+        new_feature.setGeometry(new_geometry)
+        features.append(new_feature)
+    prov_line.addFeatures(features)
+
+    # Add the layer to the Layers panel
+    QgsProject.instance().addMapLayers([layer_line])
+
+def draw_points(rows, layer_name):
+    global layer_point
+    """Draw the points on a layer
+    """
+
+    # Specify the geometry type
+    layer_point = QgsVectorLayer('Point?crs=epsg:4326', layer_name, 'memory')
+    layer_point.setCrs(CRS)
+    # Avoid warning when closing project
+    layer_point.setCustomProperty("skipMemoryLayersCheck", 1)
+    with edit(layer_point):
+        layer_point.addAttribute(QgsField("filter", QVariant.Int))
+        layer_point.addAttribute(QgsField("id", QVariant.String))
+        layer_point.addAttribute(QgsField("biangulation", QVariant.Int))
+    layer_point.setSubsetString('NOT filter')
+    prov_point = layer_point.dataProvider()
+
+    # Create and add point features
+    features = []
+    for row in rows:
+        new_geometry = make_point_geometry(row)
+        new_feature = QgsFeature()
+        new_feature.setGeometry(new_geometry)
+        features.append(new_feature)
+    prov_point.addFeatures(features)
+
+    # Custom renderer for colors
+    renderer = QgsCategorizedSymbolRenderer()
+    renderer.setClassAttribute("id")
+    layer_point.setRenderer(renderer)
+
+    # Add the layer to the Layers panel
+    QgsProject.instance().addMapLayers([layer_point])
+
+def add_line_and_point(rows):
+    layer_line.startEditing()
+    layer_point.startEditing()
+
+    for row in rows:
+        new_geometry = make_line_geometry(row)
+        layer_line.changeGeometry(row['id_observation'], new_geometry)
+        new_geometry = make_point_geometry(row)
+        layer_point.changeGeometry(row['id_observation'], new_geometry)
+
+    layer_line.commitChanges()
+    layer_point.commitChanges()
+
+    layer_line.updateExtents()
+    layer_point.updateExtents()
+
+    set_filter([row['id_observation'] for row in rows], False)
+
+def make_line_geometry(row_data):
+    try:
+        x = row_data[labels['X']]
+        y = row_data[labels['Y']]
+        azi = row_data[labels['AZIMUT']]
+        x_res, y_res = dst(y, x, azi, segment_length)
+        point = QgsPoint(x, y)
+        point2 = QgsPoint(y_res, x_res)
+        return QgsGeometry.fromPolyline([point, point2])
+    except:
+        return QgsGeometry()
+
+def make_point_geometry(row_data):
+    try:
+        inX = row_data[labels['X']]
+        inY = row_data[labels['Y']]
+        return buildGeomPoint(inX, inY)
+    except:
+        return QgsGeometry()
+
+def set_id(array):
+    renderer = layer_point.renderer()
+    ids = set([cat.value() for cat in renderer.categories()])
+    for row in array:
+        if row['id'] not in ids:
+            rgb = randrange(256), randrange(256), randrange(256)
+            symbol = QgsMarkerSymbol.createSimple({'size' : "3.0",
+                                                   'color' : "%d,%d,%d" % rgb})
+            cat = QgsRendererCategory(row['id'], symbol, row['id'])
+            renderer.addCategory(cat)
+            ids.add(row['id'])
+
+    fieldIdx = layer_point.dataProvider().fieldNameIndex('id')
+    attrs = {row['id_observation']: {fieldIdx: row['id']} for row in array}
+
+    layer_line.dataProvider().changeAttributeValues(attrs)
+    layer_line.triggerRepaint()
+
+    layer_point.dataProvider().changeAttributeValues(attrs)
+    layer_point.triggerRepaint()
+
+def get_id_colors():
+    return {cat.value(): cat.symbol().color()
+            for cat in layer_point.renderer().categories()}
+
+def set_filter(id_rows, is_filtered):
+    if len(id_rows) == 0 or layer_point is None or layer_line is None:
+        return
+
+    # Assumes that the fieldIdx is the same in both layers
+    fieldIdx = layer_point.dataProvider().fieldNameIndex('filter')
+    attrs = {feature_id: {fieldIdx: is_filtered} for feature_id in id_rows}
+
+    layer_line.dataProvider().changeAttributeValues(attrs)
+    layer_line.triggerRepaint()
+    layer_line.updateExtents()
+
+    layer_point.dataProvider().changeAttributeValues(attrs)
+    layer_point.triggerRepaint()
+    layer_point.updateExtents()
+
+    # If zoom set has not changed (autozoom), adjust the zoom
+    if curr_extent is None or autoZoom():
+        updateZoom()
 
 def updateZoom():
     global curr_extent
@@ -65,6 +209,10 @@ def autoZoom():
     return current_extent.contains(curr_extent) and \
        curr_extent.contains(current_extent)
 
+def set_segment_length(length):
+    global segment_length
+    segment_length = length
+
 def set_EPSG4326():
     global CRS
     CRS = QgsCoordinateReferenceSystem('epsg:4326')
@@ -85,120 +233,6 @@ def updateCRS():
     layer_point.triggerRepaint()
     layer_point.updateExtents()
     updateZoom()
-
-def draw_points(rows, layer_name):
-    global layer_point
-    """Draw the points on a layer
-    """
-
-    # Specify the geometry type
-    layer_point = QgsVectorLayer('Point?crs=epsg:4326', layer_name, 'memory')
-    layer_point.setCrs(CRS)
-    # Avoid warning when closing project
-    layer_point.setCustomProperty("skipMemoryLayersCheck", 1)
-    with edit(layer_point):
-        layer_point.addAttribute(QgsField("filter", QVariant.Int))
-    layer_point.setSubsetString('NOT filter')
-    prov_point = layer_point.dataProvider()
-
-    # Create and add point features
-    features = []
-    for row in rows:
-        new_geometry = make_point_geometry(row)
-        new_feature = QgsFeature()
-        new_feature.setGeometry(new_geometry)
-        features.append(new_feature)
-    prov_point.addFeatures(features)
-    # Update extent of the layer
-    layer_point.updateExtents()
-    # Add the layer to the Layers panel
-    QgsProject.instance().addMapLayers([layer_point])
-
-def draw_lines(rows, layer_name):
-    global layer_line
-    """Draw the lines on a layer
-    """
-
-    # Specify the geometry type
-    layer_line = QgsVectorLayer('LineString?crs=epsg:4326', layer_name, 'memory')
-    layer_line.setCrs(CRS)
-    # Avoid warning when closing project
-    layer_line.setCustomProperty("skipMemoryLayersCheck", 1)
-    with edit(layer_line):
-        layer_line.addAttribute(QgsField("filter", QVariant.Int))
-    layer_line.setSubsetString('NOT filter')
-    prov_line = layer_line.dataProvider()
-
-    # Create and add line features
-    features = []
-    for row in rows:
-        new_geometry = make_line_geometry(row)
-        new_feature = QgsFeature()
-        new_feature.setGeometry(new_geometry)
-        features.append(new_feature)
-    prov_line.addFeatures(features)
-    # Update extent of the layer
-    layer_line.updateExtents()
-    # Add the layer to the Layers panel
-    QgsProject.instance().addMapLayers([layer_line])
-
-def make_point_geometry(row_data):
-    try:
-        inX = row_data[labels['X']]
-        inY = row_data[labels['Y']]
-        return buildGeomPoint(inX, inY)
-    except:
-        return QgsGeometry()
-
-def make_line_geometry(row_data):
-    try:
-        x = row_data[labels['X']]
-        y = row_data[labels['Y']]
-        azi = row_data[labels['AZIMUT']]
-        x_res, y_res = dst(y, x, azi, segment_length)
-        point = QgsPoint(x, y)
-        point2 = QgsPoint(y_res, x_res)
-        return QgsGeometry.fromPolyline([point, point2])
-    except:
-        return QgsGeometry()
-
-def add_line_and_point(rows):
-    layer_line.startEditing()
-    layer_point.startEditing()
-
-    for row in rows:
-        new_geometry = make_line_geometry(row)
-        layer_line.changeGeometry(row['id_observation'], new_geometry)
-        new_geometry = make_point_geometry(row)
-        layer_point.changeGeometry(row['id_observation'], new_geometry)
-
-    layer_line.commitChanges()
-    layer_point.commitChanges()
-
-    layer_line.updateExtents()
-    layer_point.updateExtents()
-
-    set_filter([row['id_observation'] for row in rows], False)
-
-def set_filter(id_rows, is_filtered):
-    if len(id_rows) == 0 or layer_point is None or layer_line is None:
-        return
-
-    # Assumes that the fieldIdx is the same in both layers
-    fieldIdx = layer_point.dataProvider().fieldNameIndex('filter')
-    attrs = {feature_id: {fieldIdx: is_filtered} for feature_id in id_rows}
-
-    layer_line.dataProvider().changeAttributeValues(attrs)
-    layer_line.triggerRepaint()
-    layer_line.updateExtents()
-
-    layer_point.dataProvider().changeAttributeValues(attrs)
-    layer_point.triggerRepaint()
-    layer_point.updateExtents()
-
-    # If zoom set has not changed (autozoom), adjust the zoom
-    if curr_extent is None or autoZoom():
-        updateZoom()
 
 def clear_layers():
     global layer_point
