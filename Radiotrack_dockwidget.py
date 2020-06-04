@@ -164,6 +164,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.dateTimeStart.dateTimeChanged.connect(self.filter)
         self.dateTimeEnd.dateTimeChanged.connect(self.filter)
         self.dateTimeFixedInterval.clicked.connect(self.link_datetime_edit)
+        self.dateTimeFixedInterval.setCheckState(Qt.Checked)
         self.dateTimeAdjust.clicked.connect(self.adjust_datetime_filter)
         self.position.stateChanged.connect(self.filter)
         self.azimuth.stateChanged.connect(self.filter)
