@@ -148,6 +148,8 @@ def set_id(array):
     for row in array:
         if row['id'] not in ids:
             rgb = randrange(256), randrange(256), randrange(256)
+            lighter = max(0, 256 - sum(rgb)) // 3
+            rgb = tuple(col + lighter for col in rgb)
             symbol = QgsMarkerSymbol.createSimple({'size' : "3.0",
                                                    'color' : "%d,%d,%d" % rgb})
             cat = QgsRendererCategory(row['id'], symbol, row['id'])
