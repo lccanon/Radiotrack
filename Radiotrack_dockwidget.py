@@ -348,10 +348,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
 
     # Initial population of ids with available ones in data
     def init_filter(self):
-        headers = [self.model.headerData(col, Qt.Horizontal)
-                   for col in range(self.model.columnCount())]
-        if headers == []:
-            return
         self.update_ids()
         # Put all values to default ones (in particular for the date)
         self.reset_filter()
@@ -361,8 +357,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Find id column
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
-        if headers == []:
-            return
         col_id = headers.index('id')
         # Get ids in data
         ids = set()
@@ -427,8 +421,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         biggest_date = None
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
-        if headers == []:
-            return
         col_date = headers.index('datetime')
         for row in range(self.model.rowCount()):
             date = self.model.item(row, col_date).data(Qt.EditRole)
