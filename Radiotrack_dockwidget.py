@@ -265,6 +265,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Update main and filter tab views
         self.currentProjectText.setText(filename)
         self.update_view()
+        self.reset_filter()
         # Initial population of ids with available ones in data
         self.filter_update()
 
