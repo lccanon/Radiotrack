@@ -222,7 +222,7 @@ Any previously loaded data will be replaced. (Ctrl+Alt+I)</string>
                 <item>
                  <widget class="QCheckBox" name="dateTimeFixedInterval">
                   <property name="toolTip">
-                   <string>Define whether the interval between both datetime should remain fixed.</string>
+                   <string>Define whether the interval between both datetimes should remain fixed when rolling.</string>
                   </property>
                   <property name="text">
                    <string>Fixed interval</string>
