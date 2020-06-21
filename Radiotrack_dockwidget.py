@@ -355,6 +355,9 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.tableView.resizeRowsToContents()
 
     def update_ids(self):
+        #XXX remove check eventually
+        if self.model.rowCount() == 0:
+            return
         # Remove orphan ids if not selected
         # Find id column
         headers = [self.model.headerData(col, Qt.Horizontal)
