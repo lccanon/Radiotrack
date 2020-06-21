@@ -91,9 +91,10 @@ class DateCoordItemEditorFactory(QItemEditorFactory):
 
 
 class CheckBoxHeader(QHeaderView):
-    def __init__(self, orientation, parent):
+    def __init__(self, orientation, parent, dock):
         super(CheckBoxHeader, self).__init__(orientation, parent)
         self.isOn = True
+        self.dock = dock
 
     def paintSection(self, painter, rect, logicalIndex):
         painter.save()
@@ -119,8 +120,11 @@ class CheckBoxHeader(QHeaderView):
                 state = Qt.Unchecked
             else:
                 state = Qt.Checked
+            tableView.model().itemChanged.disconnect()
             for row in visible_rows:
                 tableView.model().setSelected(row, state)
+            tableView.model().itemChanged.connect(self.dock.refresh)
+            self.dock.filter()
             self.isOn = not self.isOn
         self.update()
         super(CheckBoxHeader, self).mousePressEvent(event)
@@ -141,7 +145,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.model.itemChanged.connect(self.refresh)
         self.tableView.setModel(self.model)
         self.tableView.setSortingEnabled(True)
-        checkboxHeader = CheckBoxHeader(Qt.Horizontal, self.tableView)
+        checkboxHeader = CheckBoxHeader(Qt.Horizontal, self.tableView, self)
         checkboxHeader.setSectionsClickable(True)
         checkboxHeader.setHighlightSections(True)
         checkboxHeader.setMinimumSectionSize(0)
