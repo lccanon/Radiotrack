@@ -490,6 +490,32 @@ Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to 
    <header>Radiotrack.RollingDateTimeEdit</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>tableView</tabstop>
+  <tabstop>importButton</tabstop>
+  <tabstop>saveAsButton</tabstop>
+  <tabstop>clearButton</tabstop>
+  <tabstop>currentProjectText</tabstop>
+  <tabstop>idFilter</tabstop>
+  <tabstop>dateTimeStart</tabstop>
+  <tabstop>dateTimeEnd</tabstop>
+  <tabstop>dateTimeFixedInterval</tabstop>
+  <tabstop>dateTimeAdjust</tabstop>
+  <tabstop>position</tabstop>
+  <tabstop>azimuth</tabstop>
+  <tabstop>datetime</tabstop>
+  <tabstop>biangulation</tabstop>
+  <tabstop>selected</tabstop>
+  <tabstop>resetFilterButton</tabstop>
+  <tabstop>segmentLength</tabstop>
+  <tabstop>dateComboBox</tabstop>
+  <tabstop>epsg4326</tabstop>
+  <tabstop>projectCrs</tabstop>
+  <tabstop>intersectionButton</tabstop>
+  <tabstop>documentationText</tabstop>
+  <tabstop>demoButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
  <buttongroups>
