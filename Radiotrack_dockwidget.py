@@ -154,7 +154,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         QShortcut(QKeySequence("Ctrl+PgDown"), self).activated.connect(self.navigateRightTab)
         QShortcut(QKeySequence("Ctrl+PgUp"), self).activated.connect(self.navigateLeftTab)
         """Import and export csv project actions"""
-        self.importButton.clicked.connect(self.import_file)
+        self.importButton.clicked.connect(self.importFile)
         self.importButton.setShortcut("Ctrl+Alt+I")
         """Save actions"""
         self.saveAsButton.clicked.connect(self.save_as)
@@ -197,7 +197,9 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         """Set CRS"""
         self.epsg4326.clicked.connect(set_EPSG4326)
         self.projectCrs.clicked.connect(set_project_CRS)
-        self.demoButton.clicked.connect(self.import_demo)
+        """Intersection computation"""
+        self.intersectionButton.clicked.connect(self.intersectBiangulation)
+        self.demoButton.clicked.connect(self.importDemo)
 
     def refresh(self, item):
         """Handle table edits
@@ -246,7 +248,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         currentIndex = (tb.currentIndex() - 1) % tb.count()
         self.tabWidget.setCurrentIndex(currentIndex)
 
-    def import_file(self, checked, filename = None):
+    def importFile(self, filename = None):
         """Import a file: displays a dialog to select the file and load it
         """
         if filename is None:
@@ -448,7 +450,11 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.model.setDateTimeFormat(datetime_format)
         self.model.itemChanged.connect(self.refresh)
 
-    def import_demo(self, checked):
+    def intersectBiangulation(self):
+        result = self.model.intersectionBiangulation()
+        add_intersection()
+
+    def importDemo(self):
         THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
         my_file = os.path.join(THIS_FOLDER, "./Documentation/example.csv")
-        self.import_file(checked, filename = my_file)
+        self.importFile(filename = my_file)

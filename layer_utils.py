@@ -252,25 +252,19 @@ def clear_layers():
     global layer_line
     global curr_extent
 
-    if layer_point is not None:
-        try:
-            QgsProject.instance().removeMapLayers([layer_point.id()])
-        except:
-            QgsMessageLog.logMessage('Layer already removed', 'Radiotrack', level=message_log_levels["Info"])
-        layer_point = None
-    if layer_line is not None:
-        try:
-            QgsProject.instance().removeMapLayers([layer_line.id()])
-        except:
-            QgsMessageLog.logMessage('Layer already removed', 'Radiotrack', level=message_log_levels["Info"])
-        layer_line = None
+    clearLayer(layer_point)
+    layer_point = None
+    clearLayer(layer_line)
+    layer_line = None
     iface.mapCanvas().refresh()
 
     curr_extent = None
 
-# unused method
-def clear_layer(layer_name):
+def clearLayer(layer):
     """Suppression d'un layer (clear)"""
-    layers = QgsProject.instance().mapLayersByName(layer_name)
-    QgsProject.instance().removeMapLayers([layer.id() for layer in layers])
-    iface.mapCanvas().refresh()
+    if layer is not None:
+        try:
+            QgsProject.instance().removeMapLayers([layer.id()])
+        except:
+            QgsMessageLog.logMessage('Layer already removed',
+                                     'Radiotrack', level=message_log_levels["Info"])
