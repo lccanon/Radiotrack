@@ -41,7 +41,7 @@ from .compat import QDockWidget, QItemEditorFactory, QStyledItemDelegate, messag
 from .manageDocumentation import importDoc
 
 from .csv_utils import select_csv_file, load_csv_to_array, save_array_to_csv, select_save_file
-from .layer_utils import createLayers, clearLayers, updateRowLinePoint, set_filter, set_segment_length, set_EPSG4326, set_project_CRS, set_id, get_id_colors
+from .layer_utils import createLayers, clearLayers, updateRowLinePoint, set_filter, set_segment_length, set_EPSG4326, set_project_CRS, set_id, get_id_colors, drawIntersection
 from .TrackingModel import TrackingModel
 
 
@@ -248,8 +248,11 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         currentIndex = (tb.currentIndex() - 1) % tb.count()
         self.tabWidget.setCurrentIndex(currentIndex)
 
-    def importFile(self, filename = None):
+    def importFile(self, checked, filename = None):
         """Import a file: displays a dialog to select the file and load it
+
+        It is important to keep the checked argument, even if not
+        used, for disambiguation with the filename.
         """
         if filename is None:
             filename = select_csv_file()
@@ -451,12 +454,12 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.model.itemChanged.connect(self.refresh)
 
     def intersectBiangulation(self):
-        ### get biangulated row with corresponding index (pairs of
-        ### increasing indices)
+        """Get biangulated row ids as pairs of indices"""
         biangs = self.model.biangulations()
         drawIntersection(biangs)
 
-    def importDemo(self):
+    def importDemo(self, checked):
         THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
         my_file = os.path.join(THIS_FOLDER, "./Documentation/example.csv")
-        self.importFile(filename = my_file)
+        """checked is passed on because of argument ambiguity"""
+        self.importFile(checked, filename = my_file)

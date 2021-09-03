@@ -3,7 +3,7 @@
 from random import randrange
 
 from qgis.utils import iface
-from qgis.core import QgsVectorLayer, QgsFeature, QgsPoint, QgsGeometry, QgsField
+from qgis.core import QgsVectorLayer, QgsFeature, QgsPoint, QgsGeometry, QgsField, QgsWkbTypes
 from qgis.core import QgsCoordinateTransform, QgsCoordinateReferenceSystem, edit
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererCategory, QgsMarkerSymbol
 from .algorithmNewPoint import dst
@@ -51,6 +51,8 @@ def clearLayers():
     clearLayer(layerLine)
     layerLine = None
     iface.mapCanvas().refresh()
+
+    ### TODO clear intersection layer
 
     curr_extent = None
 
@@ -106,8 +108,8 @@ def drawPoints(rows, layer_name):
     # Avoid warning when closing project
     layerPoint.setCustomProperty("skipMemoryLayersCheck", 1)
     with edit(layerPoint):
-        layerPoint.addAttribute(QgsField("filter", QVariant.Int))
         layerPoint.addAttribute(QgsField("id", QVariant.String))
+        layerPoint.addAttribute(QgsField("filter", QVariant.Int))
         layerPoint.addAttribute(QgsField("biangulation", QVariant.Int))
     layerPoint.setSubsetString('NOT filter')
     provPoint = layerPoint.dataProvider()
@@ -227,7 +229,7 @@ def set_filter(id_rows, is_filtered):
 def drawIntersection(biangs):
     global layerLine
     # Specify the geometry type
-    layerInter = QgsVectorLayer('LineString?crs=epsg:4326', 'intersection', 'memory')
+    layerInter = QgsVectorLayer('Point?crs=epsg:4326', 'intersection', 'memory')
     layerInter.setCrs(CRS)
     # Avoid warning when closing project
     layerInter.setCustomProperty("skipMemoryLayersCheck", 1)
@@ -237,11 +239,13 @@ def drawIntersection(biangs):
         geom1 = layerLine.getGeometry(obs1)
         geom2 = layerLine.getGeometry(obs2)
         newGeom = geom1.intersection(geom2)
-        newFeat = QgsFeature()
-        newFeat.setGeometry(newGeom)
-        features.append(newFeat)
+        if newGeom.type() == QgsWkbTypes.PointGeometry:
+            newFeat = QgsFeature()
+            newFeat.setGeometry(newGeom)
+            features.append(newFeat)
     provLine.addFeatures(features)
     QgsProject.instance().addMapLayers([layerInter])
+    layerInter.triggerRepaint()
 
 def updateZoom():
     global curr_extent

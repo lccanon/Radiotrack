@@ -314,7 +314,8 @@ class BiangulationDetector:
         biangs = []
         for row_id_sp, id_dict in self.rows_for_date.items():
             for _, id_date_set in id_dict.items():
-                for id in id_date_set:
-                    if row_id_sp < id:
-                        biangs.append((row_id_sp, id))
+                for id1 in id_date_set:
+                    for id2 in id_date_set:
+                        if id1 < id2:
+                            biangs.append((id1, id2))
         return biangs
