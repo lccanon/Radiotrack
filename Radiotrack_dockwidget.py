@@ -41,7 +41,7 @@ from .compat import QDockWidget, QItemEditorFactory, QStyledItemDelegate, messag
 from .manageDocumentation import importDoc
 
 from .csv_utils import select_csv_file, load_csv_to_array, save_array_to_csv, select_save_file
-from .layer_utils import create_layers, clear_layers, add_line_and_point, set_filter, set_segment_length, set_EPSG4326, set_project_CRS, set_id, get_id_colors
+from .layer_utils import createLayers, clearLayers, updateRowLinePoint, set_filter, set_segment_length, set_EPSG4326, set_project_CRS, set_id, get_id_colors
 from .TrackingModel import TrackingModel
 
 
@@ -224,7 +224,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         header = self.model.headerData(item.column(), Qt.Horizontal)
         if header == 'lon' or header == 'lat' or header == 'azi':
             row_info = self.model.get_row(item.row())
-            add_line_and_point([row_info])
+            updateRowLinePoint(row_info)
         elif header == 'id':
             row_info = self.model.get_row(item.row())
             set_id([row_info])
@@ -267,7 +267,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Update canvas and create colors (must be done before
         # initializing the filters)
         layer_suffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
-        create_layers(self.model.get_all(), layer_suffix)
+        createLayers(self.model.get_all(), layer_suffix)
         # Update main and filter tab views
         self.currentProjectText.setText(filename)
         self.update_view()
@@ -310,7 +310,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                     iface.messageBar().pushInfo(u'Radiotrack: ', u'CSV file saved.')
 
     def clear(self):
-        clear_layers()
+        clearLayers()
         self.model.clear()
         self.currentProjectText.clear()
         # Clear filter tab view
@@ -451,8 +451,10 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.model.itemChanged.connect(self.refresh)
 
     def intersectBiangulation(self):
-        result = self.model.intersectionBiangulation()
-        add_intersection()
+        ### get biangulated row with corresponding index (pairs of
+        ### increasing indices)
+        biangs = self.model.biangulations()
+        drawIntersection(biangs)
 
     def importDemo(self):
         THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))

@@ -85,6 +85,9 @@ class TrackingModel(QStandardItemModel):
     def biangulated(self, row):
         return self.biangulation_detector.biangulated(row)
 
+    def biangulations(self):
+        return self.biangulation_detector.biangulations()
+
     def selected(self, row):
         return self.item(row, SELECTED_COL_POS).checkState() == Qt.Checked
 
@@ -306,3 +309,12 @@ class BiangulationDetector:
         row_id_sp = self.model.item(row, id_sp_index).text()
         row_date = self.model.item(row, date_index).text()
         return len(self.rows_for_date[row_id_sp][row_date]) >= 2
+
+    def biangulations(self):
+        biangs = []
+        for row_id_sp, id_dict in self.rows_for_date.items():
+            for _, id_date_set in id_dict.items():
+                for id in id_date_set:
+                    if row_id_sp < id:
+                        biangs.append((row_id_sp, id))
+        return biangs
