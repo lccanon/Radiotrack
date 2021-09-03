@@ -16,6 +16,7 @@ from .csv_utils import labels
 # Store references to the layers
 layerLine = None
 layerPoint = None
+layerInter = None
 
 LINE_LAYER_BASE_NAME = "lines"
 POINT_LAYER_BASE_NAME = "points"
@@ -42,17 +43,18 @@ def createLayers(array, layer_suffix = ""):
     set_filter([row['id_observation'] for row in array], False)
 
 def clearLayers():
-    global layerPoint
     global layerLine
+    global layerPoint
+    global layerInter
     global curr_extent
 
-    clearLayer(layerPoint)
-    layerPoint = None
     clearLayer(layerLine)
     layerLine = None
+    clearLayer(layerPoint)
+    layerPoint = None
+    clearLayer(layerInter)
+    layerInter = None
     iface.mapCanvas().refresh()
-
-    ### TODO clear intersection layer
 
     curr_extent = None
 
@@ -227,13 +229,22 @@ def set_filter(id_rows, is_filtered):
         updateZoom()
 
 def drawIntersection(biangs):
+    #TODO change name of layer
+    #TODO add point renderer for color based on name
+    #TODO add filtering depending on line
     global layerLine
+    global layerPoint
+    global layerInter
+
+    clearLayer(layerInter)
+
     # Specify the geometry type
     layerInter = QgsVectorLayer('Point?crs=epsg:4326', 'intersection', 'memory')
     layerInter.setCrs(CRS)
     # Avoid warning when closing project
     layerInter.setCustomProperty("skipMemoryLayersCheck", 1)
-    provLine = layerInter.dataProvider()
+
+    provInter = layerInter.dataProvider()
     features = []
     for obs1, obs2 in biangs:
         geom1 = layerLine.getGeometry(obs1)
@@ -243,7 +254,8 @@ def drawIntersection(biangs):
             newFeat = QgsFeature()
             newFeat.setGeometry(newGeom)
             features.append(newFeat)
-    provLine.addFeatures(features)
+    provInter.addFeatures(features)
+
     QgsProject.instance().addMapLayers([layerInter])
     layerInter.triggerRepaint()
 
