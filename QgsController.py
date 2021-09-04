@@ -145,25 +145,27 @@ class QgsController:
 
     def updateRowLinePoint(self, row):
         """Update the value of a single observation"""
-        self.layerLine.startEditing()
-        self.layerPoint.startEditing()
+        idRow = row['id_observation']
 
         newGeometry = self.makeLineGeometry(row)
-        self.layerLine.changeGeometry(row['id_observation'], newGeometry)
+        self.updateRowGeometry(self.layerLine, idRow, newGeometry)
+
         newGeometry = self.makePointGeometry(row)
-        self.layerPoint.changeGeometry(row['id_observation'], newGeometry)
-
-        self.layerLine.commitChanges()
-        self.layerPoint.commitChanges()
-
-        self.layerLine.updateExtents()
-        self.layerPoint.updateExtents()
+        self.updateRowGeometry(self.layerPoint, idRow, newGeometry)
 
         """The current row geometries are updated when the row is edited.
         Thus, it is not an hidden row. Thus, if it has to be kept by the
-        filter, the filtering will not be updated. In this case, we need
+        filter and the filtering will not be updated. In this case, we need
         to initialize the value to False."""
-        self.setFilter([row['id_observation']], False)
+        self.setFilter([idRow], False)
+
+    def updateRowGeometry(self, layer, idRow, geom):
+        if layer is None:
+            return
+        layer.startEditing()
+        layer.changeGeometry(idRow, geom)
+        layer.commitChanges()
+        layer.updateExtents()
 
     def makeLineGeometry(self, rowData):
         try:
@@ -215,7 +217,7 @@ class QgsController:
         if len(idRows) == 0 or self.layerPoint is None or self.layerLine is None:
             return
 
-        # Assumes that the fieldIdx is the same in both layers
+        # This assumes that the fieldIdx is the same in both layers
         fieldIdx = self.layerPoint.dataProvider().fieldNameIndex('filter')
         attrs = {featureId: {fieldIdx: isFiltered} for featureId in idRows}
 
@@ -227,6 +229,8 @@ class QgsController:
             self.updateZoom()
 
     def changeAttributeValues(self, layer, attrs):
+        if layer is None:
+            return
         layer.dataProvider().changeAttributeValues(attrs)
         layer.triggerRepaint()
         layer.updateExtents()
