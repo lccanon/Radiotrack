@@ -80,19 +80,14 @@ class QgsController:
         """Draw the lines on a layer
         """
 
-        # Create and add line features
-        features = []
-        for row in rows:
-            newGeometry = self.makeLineGeometry(row)
-            newFeature = QgsFeature()
-            newFeature.setGeometry(newGeometry)
-            features.append(newFeature)
-
         # Specify the geometry type
         layerName = self.LINE_LAYER_BASE_NAME + self.layerSuffix
         self.layerLine = QgsVectorLayer('LineString?crs=epsg:4326',
                                         layerName, 'memory')
-        self.initLayerFeatures(self.layerLine, features)
+        # Create and add lines
+        geometries = [self.makeLineGeometry(row) for row in rows]
+
+        self.initLayerFeatures(self.layerLine, geometries)
 
         #XXX return fids here
         fids = [feature.id() for feature in self.layerLine.getFeatures()]
@@ -101,19 +96,14 @@ class QgsController:
         """Draw the points on a layer
         """
 
-        # Create and add point features
-        features = []
-        for row in rows:
-            newGeometry = self.makePointGeometry(row)
-            newFeature = QgsFeature()
-            newFeature.setGeometry(newGeometry)
-            features.append(newFeature)
-
         # Specify the geometry type
         layerName = self.POINT_LAYER_BASE_NAME + self.layerSuffix
         self.layerPoint = QgsVectorLayer('Point?crs=epsg:4326',
                                          layerName, 'memory')
-        self.initLayerFeatures(self.layerPoint, features)
+        # Create and add points
+        geometries = [self.makePointGeometry(row) for row in rows]
+
+        self.initLayerFeatures(self.layerPoint, geometries)
 
         # Custom idRenderer for colors
         self.idRenderer = QgsCategorizedSymbolRenderer()
@@ -123,12 +113,18 @@ class QgsController:
         #XXX return ids here (check this it the same as for line)
         ids = [feature.id() for feature in self.layerPoint.getFeatures()]
 
-    def drawIntersection(self, biangs):
+    def drawIntersections(self, biangs):
         #TODO add point idRenderer for color based on name
         #TODO add filtering depending on line
         self.clearLayer(self.layerInter)
 
-        features = []
+        # Specify the geometry type
+        layerName = self.INTER_LAYER_BASE_NAME + self.layerSuffix
+        self.layerInter = QgsVectorLayer('Point?crs=epsg:4326',
+                                         layerName, 'memory')
+
+        # Create and add points
+        geometries = []
         for obs1, obs2 in biangs:
             geom1 = self.layerLine.getGeometry(obs1)
             geom2 = self.layerLine.getGeometry(obs2)
@@ -136,16 +132,15 @@ class QgsController:
             if newGeom.type() == QgsWkbTypes.PointGeometry:
                 newFeat = QgsFeature()
                 newFeat.setGeometry(newGeom)
-                features.append(newFeat)
+                geometries.append(newGeom)
 
-        # Specify the geometry type
-        layerName = self.INTER_LAYER_BASE_NAME + self.layerSuffix
-        self.layerInter = QgsVectorLayer('Point?crs=epsg:4326',
-                                         layerName, 'memory')
-        self.initLayerFeatures(self.layerInter, features)
+        self.initLayerFeatures(self.layerInter, geometries)
         self.layerInter.setSubsetString('') # XXX temp
 
-    def initLayerFeatures(self, layer, features):
+    def initLayerFeatures(self, layer, geometries):
+        features = [QgsFeature() for i in geometries]
+        for geom, feat in zip(geometries, features):
+            feat.setGeometry(geom)
         # Specify the geometry type
         layer.setCrs(self.CRS)
         # Avoid warning when closing project

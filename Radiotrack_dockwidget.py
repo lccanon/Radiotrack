@@ -457,7 +457,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
     def intersectBiangulation(self):
         """Get biangulated row ids as pairs of indices"""
         biangs = self.model.biangulations()
-        self.qgs.drawIntersection(biangs)
+        self.qgs.drawIntersections(biangs)
 
     def importDemo(self, checked):
         THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
