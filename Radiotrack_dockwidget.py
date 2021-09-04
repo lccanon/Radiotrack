@@ -193,10 +193,10 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.dateComboBox.addItem("hh:mm:ss d/M/yyyy")
         self.dateComboBox.addItem("hh:mm:ss M/d/yyyy")
         """Set segment length"""
-        self.segmentLength.valueChanged.connect(self.qgs.set_segment_length)
+        self.segmentLength.valueChanged.connect(self.qgs.setSegmentLength)
         """Set CRS"""
-        self.epsg4326.clicked.connect(self.qgs.set_EPSG4326)
-        self.projectCrs.clicked.connect(self.qgs.set_project_CRS)
+        self.epsg4326.clicked.connect(self.qgs.setEPSG4326)
+        self.projectCrs.clicked.connect(self.qgs.setProjectCRS)
         """Intersection computation"""
         self.intersectionButton.clicked.connect(self.intersectBiangulation)
         self.demoButton.clicked.connect(self.importDemo)
@@ -227,7 +227,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             self.qgs.updateRowLinePoint(row_info)
         elif header == 'id':
             row_info = self.model.get_row(item.row())
-            self.qgs.set_id([row_info])
+            self.qgs.setId([row_info])
 
         # Re-apply filter and update filter id list
         if header == 'id':
@@ -269,8 +269,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.model.itemChanged.connect(self.refresh)
         # Update canvas and create colors (must be done before
         # initializing the filters)
-        layer_suffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
-        self.qgs.createLayers(self.model.get_all(), layer_suffix)
+        layerSuffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
+        self.qgs.createLayers(self.model.get_all(), layerSuffix)
         # Update main and filter tab views
         self.currentProjectText.setText(filename)
         self.update_view()
@@ -354,8 +354,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                 if not self.tableView.isRowHidden(row):
                     rows_del.append(self.model.id(row))
                     self.tableView.setRowHidden(row, True)
-        self.qgs.set_filter(rows_add, False)
-        self.qgs.set_filter(rows_del, True)
+        self.qgs.setFilter(rows_add, False)
+        self.qgs.setFilter(rows_del, True)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
 
@@ -383,7 +383,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         ids = sorted(ids)
         self.idFilter.addItems(ids)
         # Set color for each item in the ids combo box
-        colors = self.qgs.get_id_colors()
+        colors = self.qgs.getIdColors()
         for i in range(1, self.idFilter.count()):
             id = self.idFilter.itemText(i)
             self.idFilter.setItemData(i, colors[id], Qt.BackgroundColorRole)

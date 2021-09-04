@@ -24,26 +24,26 @@ class QgsController:
         self.layerLine = None
         self.layerPoint = None
         self.layerInter = None
-        self.set_EPSG4326()
+        self.setEPSG4326()
         # Autozoom and properties
-        self.curr_extent = None
-        self.segment_length = 1
+        self.currExtent = None
+        self.segmentLength = 1
 
-    def createLayers(self, array, layer_suffix = ""):
+    def createLayers(self, array, layerSuffix = ""):
         """Create a layer based on the given model rows.
 
         Parameters
         ----------
         array : list of TrackingModel items
-        layer_suffix : str
+        layerSuffix : str
             A potential suffix to add to all the layer created
         """
 
         # Draw the available points on their layers
-        self.drawLines(array, self.LINE_LAYER_BASE_NAME + layer_suffix)
-        self.drawPoints(array, self.POINT_LAYER_BASE_NAME + layer_suffix)
-        self.set_id(array)
-        self.set_filter([row['id_observation'] for row in array], False)
+        self.drawLines(array, self.LINE_LAYER_BASE_NAME + layerSuffix)
+        self.drawPoints(array, self.POINT_LAYER_BASE_NAME + layerSuffix)
+        self.setId(array)
+        self.setFilter([row['id_observation'] for row in array], False)
 
     def clearLayers(self):
         self.clearLayer(self.layerLine)
@@ -54,7 +54,7 @@ class QgsController:
         self.layerInter = None
         iface.mapCanvas().refresh()
 
-        self.curr_extent = None
+        self.currExtent = None
 
     def clearLayer(self, layer):
         """Suppression d'un layer (clear)"""
@@ -65,12 +65,12 @@ class QgsController:
                 QgsMessageLog.logMessage('Layer already removed',
                                          'Radiotrack', level = QGis.Info)
 
-    def drawLines(self, rows, layer_name):
+    def drawLines(self, rows, layerName):
         """Draw the lines on a layer
         """
 
         # Specify the geometry type
-        self.layerLine = QgsVectorLayer('LineString?crs=epsg:4326', layer_name, 'memory')
+        self.layerLine = QgsVectorLayer('LineString?crs=epsg:4326', layerName, 'memory')
         self.layerLine.setCrs(self.CRS)
         # Avoid warning when closing project
         self.layerLine.setCustomProperty("skipMemoryLayersCheck", 1)
@@ -84,10 +84,10 @@ class QgsController:
         # Create and add line features
         features = []
         for row in rows:
-            new_geometry = self.makeLine_geometry(row)
-            new_feature = QgsFeature()
-            new_feature.setGeometry(new_geometry)
-            features.append(new_feature)
+            newGeometry = self.makeLineGeometry(row)
+            newFeature = QgsFeature()
+            newFeature.setGeometry(newGeometry)
+            features.append(newFeature)
         provLine.addFeatures(features)
 
         # Add the layer to the Layers panel
@@ -96,12 +96,12 @@ class QgsController:
         #XXX return fids here
         fids = [feature.id() for feature in self.layerLine.getFeatures()]
 
-    def drawPoints(self, rows, layer_name):
+    def drawPoints(self, rows, layerName):
         """Draw the points on a layer
         """
 
         # Specify the geometry type
-        self.layerPoint = QgsVectorLayer('Point?crs=epsg:4326', layer_name, 'memory')
+        self.layerPoint = QgsVectorLayer('Point?crs=epsg:4326', layerName, 'memory')
         self.layerPoint.setCrs(self.CRS)
         # Avoid warning when closing project
         self.layerPoint.setCustomProperty("skipMemoryLayersCheck", 1)
@@ -115,10 +115,10 @@ class QgsController:
         # Create and add point features
         features = []
         for row in rows:
-            new_geometry = self.makePoint_geometry(row)
-            new_feature = QgsFeature()
-            new_feature.setGeometry(new_geometry)
-            features.append(new_feature)
+            newGeometry = self.makePointGeometry(row)
+            newFeature = QgsFeature()
+            newFeature.setGeometry(newGeometry)
+            features.append(newFeature)
         provPoint.addFeatures(features)
 
         # Custom renderer for colors
@@ -137,10 +137,10 @@ class QgsController:
         self.layerLine.startEditing()
         self.layerPoint.startEditing()
 
-        new_geometry = self.makeLine_geometry(row)
-        self.layerLine.changeGeometry(row['id_observation'], new_geometry)
-        new_geometry = self.makePoint_geometry(row)
-        self.layerPoint.changeGeometry(row['id_observation'], new_geometry)
+        newGeometry = self.makeLineGeometry(row)
+        self.layerLine.changeGeometry(row['id_observation'], newGeometry)
+        newGeometry = self.makePointGeometry(row)
+        self.layerPoint.changeGeometry(row['id_observation'], newGeometry)
 
         self.layerLine.commitChanges()
         self.layerPoint.commitChanges()
@@ -152,29 +152,29 @@ class QgsController:
         Thus, it is not an hidden row. Thus, if it has to be kept by the
         filter, the filtering will not be updated. In this case, we need
         to initialize the value to False."""
-        self.set_filter([row['id_observation']], False)
+        self.setFilter([row['id_observation']], False)
 
-    def makeLine_geometry(self, row_data):
+    def makeLineGeometry(self, rowData):
         try:
-            x = row_data[labels['X']]
-            y = row_data[labels['Y']]
-            azi = row_data[labels['AZIMUT']]
-            x_res, y_res = dst(y, x, azi, self.segment_length)
+            x = rowData[labels['X']]
+            y = rowData[labels['Y']]
+            azi = rowData[labels['AZIMUT']]
+            xRes, yRes = dst(y, x, azi, self.segmentLength)
             point = QgsPoint(x, y)
-            point2 = QgsPoint(y_res, x_res)
+            point2 = QgsPoint(yRes, xRes)
             return QgsGeometry.fromPolyline([point, point2])
         except:
             return QgsGeometry()
 
-    def makePoint_geometry(self, row_data):
+    def makePointGeometry(self, rowData):
         try:
-            inX = row_data[labels['X']]
-            inY = row_data[labels['Y']]
+            inX = rowData[labels['X']]
+            inY = rowData[labels['Y']]
             return QgsGeometry.fromPointXY(QgsPointXY(inX, inY))
         except:
             return QgsGeometry()
 
-    def set_id(self, array):
+    def setId(self, array):
         renderer = self.layerPoint.renderer()
         ids = set([cat.value() for cat in renderer.categories()])
         for row in array:
@@ -200,17 +200,17 @@ class QgsController:
         self.layerPoint.dataProvider().changeAttributeValues(attrs)
         self.layerPoint.triggerRepaint()
 
-    def get_id_colors(self):
+    def getIdColors(self):
         return {cat.value(): cat.symbol().color()
                 for cat in self.layerPoint.renderer().categories()}
 
-    def set_filter(self, id_rows, is_filtered):
-        if len(id_rows) == 0 or self.layerPoint is None or self.layerLine is None:
+    def setFilter(self, idRows, isFiltered):
+        if len(idRows) == 0 or self.layerPoint is None or self.layerLine is None:
             return
 
         # Assumes that the fieldIdx is the same in both layers
         fieldIdx = self.layerPoint.dataProvider().fieldNameIndex('filter')
-        attrs = {feature_id: {fieldIdx: is_filtered} for feature_id in id_rows}
+        attrs = {featureId: {fieldIdx: isFiltered} for featureId in idRows}
 
         self.layerLine.dataProvider().changeAttributeValues(attrs)
         self.layerLine.triggerRepaint()
@@ -252,37 +252,37 @@ class QgsController:
         self.layerInter.triggerRepaint()
 
     def updateZoom(self):
-        full_extent = self.updateFullExtent()
+        fullExtent = self.updateFullExtent()
         # Does not zoom to full extent because it does not integrate well
         # with a basemap
-        iface.mapCanvas().zoomToFeatureExtent(full_extent)
-        self.curr_extent = iface.mapCanvas().extent()
+        iface.mapCanvas().zoomToFeatureExtent(fullExtent)
+        self.currExtent = iface.mapCanvas().extent()
 
     def updateFullExtent(self):
-        full_extent = self.layerPoint.extent()
-        full_extent.combineExtentWith(self.layerLine.extent())
+        fullExtent = self.layerPoint.extent()
+        fullExtent.combineExtentWith(self.layerLine.extent())
         # Assumes that the CRS is the same in both layers
         sourceCrs = self.layerPoint.crs()
         destCrs = QgsProject.instance().crs()
         xform = QgsCoordinateTransform(sourceCrs, destCrs, QgsProject.instance())
-        geom = QgsGeometry.fromRect(full_extent)
-        return xform.transform(full_extent)
+        geom = QgsGeometry.fromRect(fullExtent)
+        return xform.transform(fullExtent)
 
     def autoZoom(self):
-        if self.curr_extent is None:
+        if self.currExtent is None:
             return True
-        current_extent = iface.mapCanvas().extent()
-        return current_extent.contains(self.curr_extent) and \
-           self.curr_extent.contains(current_extent)
+        currentExtent = iface.mapCanvas().extent()
+        return currentExtent.contains(self.currExtent) and \
+           self.currExtent.contains(currentExtent)
 
-    def set_segment_length(self, length):
-        self.segment_length = length
+    def setSegmentLength(self, length):
+        self.segmentLength = length
 
-    def set_EPSG4326(self):
+    def setEPSG4326(self):
         self.CRS = QgsCoordinateReferenceSystem('epsg:4326')
         self.updateCRS()
 
-    def set_project_CRS(self):
+    def setProjectCRS(self):
         self.CRS = QgsProject.instance().crs()
         self.updateCRS()
 
