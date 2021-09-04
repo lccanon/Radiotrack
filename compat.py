@@ -12,7 +12,6 @@
 import os, csv, io
 import sys
 from qgis import core
-from qgis.core import QgsGeometry
 from qgis.core import QgsMessageLog
 from qgis.gui import QgsMessageBar
 
@@ -65,10 +64,6 @@ else:
 
 if QGis.QGIS_VERSION_INT >= 30000:
     from qgis.PyQt.QtWidgets import QAction, QDockWidget, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QCheckBox, QDateTimeEdit
-    from qgis.core import QgsProject
-    from qgis.core import QgsPointXY
-
-    buildGeomPoint = lambda x, y: QgsGeometry.fromPointXY(QgsPointXY(x, y))
 
     message_log_levels = {
         "Info": QGis.Info,
@@ -78,10 +73,6 @@ if QGis.QGIS_VERSION_INT >= 30000:
     message_bar_levels = message_log_levels
 else:
     from qgis.PyQt.QtGui import QAction, QDockWidget, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QCheckBox, QDateTimeEdit
-    from qgis.core import QgsMapLayerRegistry as QgsProject
-    from qgis.core import QgsPoint
-
-    buildGeomPoint = lambda x, y: QgsGeometry.fromPoint(QgsPoint(x, y))
 
     message_log_levels = {
         "Info": QgsMessageLog.INFO,

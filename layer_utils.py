@@ -3,12 +3,12 @@
 from random import randrange
 
 from qgis.utils import iface
-from qgis.core import QgsVectorLayer, QgsFeature, QgsPoint, QgsGeometry, QgsField, QgsWkbTypes
-from qgis.core import QgsCoordinateTransform, QgsCoordinateReferenceSystem, edit
+from qgis.core import QgsProject, QgsMessageLog
+from qgis.core import QgsVectorLayer, QgsFeature, QgsField, edit
+from qgis.core import QgsGeometry, QgsPoint, QgsPointXY, QgsWkbTypes
+from qgis.core import QgsCoordinateTransform, QgsCoordinateReferenceSystem
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererCategory, QgsMarkerSymbol
 from .algorithmNewPoint import dst
-from .compat import QgsProject, buildGeomPoint, message_log_levels
-from qgis.core import QgsMessageLog
 from qgis.PyQt.QtCore import QVariant
 
 from .csv_utils import labels
@@ -24,7 +24,7 @@ POINT_LAYER_BASE_NAME = "points"
 # Autozoom and properties
 curr_extent = None
 segment_length = 1
-CRS = QgsCoordinateReferenceSystem('epsg:4326')
+CRS = QgsCoordinateReferenceSystem('epsg:4326') # TODO replace with constructor that calls set_EPSG4326()
 
 def createLayers(array, layer_suffix = ""):
     """Create a layer based on the given model rows.
@@ -65,7 +65,7 @@ def clearLayer(layer):
             QgsProject.instance().removeMapLayers([layer.id()])
         except:
             QgsMessageLog.logMessage('Layer already removed',
-                                     'Radiotrack', level=message_log_levels["Info"])
+                                     'Radiotrack', level = QGis.Info)
 
 def drawLines(rows, layer_name):
     global layerLine
@@ -174,7 +174,7 @@ def makePoint_geometry(row_data):
     try:
         inX = row_data[labels['X']]
         inY = row_data[labels['Y']]
-        return buildGeomPoint(inX, inY)
+        return QgsGeometry.fromPointXY(QgsPointXY(inX, inY))
     except:
         return QgsGeometry()
 
