@@ -138,6 +138,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         """Constructor."""
         super(RadiotrackDockWidget, self).__init__(parent)
         self.setupUi(self)
+        #iface.dock = self # for debug only
         """Import the documentation"""
         importDoc(self.documentationText)
         """Model initialization"""
