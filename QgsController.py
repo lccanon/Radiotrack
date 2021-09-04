@@ -201,9 +201,24 @@ class QgsController:
             return QgsGeometry()
 
     def setId(self, array):
+        if len(array) == 0 or self.layerPoint is None:
+            return
+
+        self.updateRenderer([row['id'] for row in array])
+
+        fieldIdx = self.layerPoint.dataProvider().fieldNameIndex('id')
+        attrs = {row['id_observation']: {fieldIdx: row['id']} for row in array}
+
+        self.changeAttributeValues(self.layerLine, attrs)
+        self.changeAttributeValues(self.layerPoint, attrs)
+
+    def updateRenderer(self, indexes):
+        if len(indexes) == 0:
+            return
+
         ids = set([cat.value() for cat in self.idRenderer.categories()])
-        for row in array:
-            if row['id'] not in ids:
+        for id in indexes:
+            if id not in ids:
                 """Generate a random color such that the lightness is sufficient to
                 read text when used in background. The sum of RGB is at
                 least 256 (which is one third of the max lightness)."""
@@ -212,22 +227,16 @@ class QgsController:
                 rgb = tuple(col + lighter for col in rgb)
                 symbol = QgsMarkerSymbol.createSimple({'size' : "3.0",
                                                        'color' : "%d,%d,%d" % rgb})
-                cat = QgsRendererCategory(row['id'], symbol, row['id'])
+                cat = QgsRendererCategory(id, symbol, id)
                 self.idRenderer.addCategory(cat)
-                ids.add(row['id'])
-
-        fieldIdx = self.layerPoint.dataProvider().fieldNameIndex('id')
-        attrs = {row['id_observation']: {fieldIdx: row['id']} for row in array}
-
-        self.changeAttributeValues(self.layerLine, attrs)
-        self.changeAttributeValues(self.layerPoint, attrs)
+                ids.add(id)
 
     def getIdColors(self):
         return {cat.value(): cat.symbol().color()
                 for cat in self.idRenderer.categories()}
 
     def setFilter(self, idRows, isFiltered):
-        if len(idRows) == 0 or self.layerPoint is None or self.layerLine is None:
+        if len(idRows) == 0 or self.layerPoint is None:
             return
 
         # This assumes that the fieldIdx is the same in both layers
