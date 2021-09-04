@@ -270,7 +270,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Update canvas and create colors (must be done before
         # initializing the filters)
         layerSuffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
-        self.qgs.createLayers(self.model.get_all(), layerSuffix)
+        self.qgs.setLayerSuffix(layerSuffix)
+        self.qgs.createLayers(self.model.get_all())
         # Update main and filter tab views
         self.currentProjectText.setText(filename)
         self.update_view()

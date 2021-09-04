@@ -24,12 +24,24 @@ class QgsController:
         self.layerLine = None
         self.layerPoint = None
         self.layerInter = None
+        # Init geographical settings
         self.setEPSG4326()
+        self.layerSuffix = ""
         # Autozoom and properties
         self.currExtent = None
         self.segmentLength = 1
 
-    def createLayers(self, array, layerSuffix = ""):
+    def setLayerSuffix(self, layerSuffix):
+        """Indicate the suffix of all layers.
+
+        Parameters
+        ----------
+        layerSuffix : str
+            A suffix to add to all the layer created
+        """
+        self.layerSuffix = layerSuffix
+
+    def createLayers(self, array):
         """Create a layer based on the given model rows.
 
         Parameters
@@ -40,8 +52,8 @@ class QgsController:
         """
 
         # Draw the available points on their layers
-        self.drawLines(array, self.LINE_LAYER_BASE_NAME + layerSuffix)
-        self.drawPoints(array, self.POINT_LAYER_BASE_NAME + layerSuffix)
+        self.drawLines(array, self.LINE_LAYER_BASE_NAME + self.layerSuffix)
+        self.drawPoints(array, self.POINT_LAYER_BASE_NAME + self.layerSuffix)
         self.setId(array)
         self.setFilter([row['id_observation'] for row in array], False)
 
@@ -53,7 +65,6 @@ class QgsController:
         self.clearLayer(self.layerInter)
         self.layerInter = None
         iface.mapCanvas().refresh()
-
         self.currExtent = None
 
     def clearLayer(self, layer):
@@ -121,10 +132,10 @@ class QgsController:
             features.append(newFeature)
         provPoint.addFeatures(features)
 
-        # Custom renderer for colors
-        renderer = QgsCategorizedSymbolRenderer()
-        renderer.setClassAttribute("id")
-        self.layerPoint.setRenderer(renderer)
+        # Custom idRenderer for colors
+        self.idRenderer = QgsCategorizedSymbolRenderer()
+        self.idRenderer.setClassAttribute("id")
+        self.layerPoint.setRenderer(self.idRenderer)
 
         # Add the layer to the Layers panel
         QgsProject.instance().addMapLayers([self.layerPoint])
@@ -175,8 +186,7 @@ class QgsController:
             return QgsGeometry()
 
     def setId(self, array):
-        renderer = self.layerPoint.renderer()
-        ids = set([cat.value() for cat in renderer.categories()])
+        ids = set([cat.value() for cat in self.idRenderer.categories()])
         for row in array:
             if row['id'] not in ids:
                 """Generate a random color such that the lightness is sufficient to
@@ -188,21 +198,18 @@ class QgsController:
                 symbol = QgsMarkerSymbol.createSimple({'size' : "3.0",
                                                        'color' : "%d,%d,%d" % rgb})
                 cat = QgsRendererCategory(row['id'], symbol, row['id'])
-                renderer.addCategory(cat)
+                self.idRenderer.addCategory(cat)
                 ids.add(row['id'])
 
         fieldIdx = self.layerPoint.dataProvider().fieldNameIndex('id')
         attrs = {row['id_observation']: {fieldIdx: row['id']} for row in array}
 
-        self.layerLine.dataProvider().changeAttributeValues(attrs)
-        self.layerLine.triggerRepaint()
-
-        self.layerPoint.dataProvider().changeAttributeValues(attrs)
-        self.layerPoint.triggerRepaint()
+        self.changeAttributeValues(self.layerLine, attrs)
+        self.changeAttributeValues(self.layerPoint, attrs)
 
     def getIdColors(self):
         return {cat.value(): cat.symbol().color()
-                for cat in self.layerPoint.renderer().categories()}
+                for cat in self.idRenderer.categories()}
 
     def setFilter(self, idRows, isFiltered):
         if len(idRows) == 0 or self.layerPoint is None or self.layerLine is None:
@@ -212,26 +219,27 @@ class QgsController:
         fieldIdx = self.layerPoint.dataProvider().fieldNameIndex('filter')
         attrs = {featureId: {fieldIdx: isFiltered} for featureId in idRows}
 
-        self.layerLine.dataProvider().changeAttributeValues(attrs)
-        self.layerLine.triggerRepaint()
-        self.layerLine.updateExtents()
-
-        self.layerPoint.dataProvider().changeAttributeValues(attrs)
-        self.layerPoint.triggerRepaint()
-        self.layerPoint.updateExtents()
+        self.changeAttributeValues(self.layerLine, attrs)
+        self.changeAttributeValues(self.layerPoint, attrs)
 
         # If zoom set has not changed (autozoom), adjust the zoom
         if self.autoZoom():
             self.updateZoom()
 
+    def changeAttributeValues(self, layer, attrs):
+        layer.dataProvider().changeAttributeValues(attrs)
+        layer.triggerRepaint()
+        layer.updateExtents()
+
     def drawIntersection(self, biangs):
-        #TODO change name of layer
-        #TODO add point renderer for color based on name
+        #TODO add point idRenderer for color based on name
         #TODO add filtering depending on line
         self.clearLayer(self.layerInter)
 
         # Specify the geometry type
-        self.layerInter = QgsVectorLayer('Point?crs=epsg:4326', 'intersection', 'memory')
+        layerName = self.LINE_LAYER_BASE_NAME + self.layerSuffix
+        self.layerInter = QgsVectorLayer('Point?crs=epsg:4326',
+                                         layerName, 'memory')
         self.layerInter.setCrs(self.CRS)
         # Avoid warning when closing project
         self.layerInter.setCustomProperty("skipMemoryLayersCheck", 1)
@@ -289,16 +297,14 @@ class QgsController:
     def updateCRS(self):
         if self.layerLine is None or self.layerPoint is None:
             return
-        self.layerLine.setCrs(self.CRS)
-        self.layerLine.triggerRepaint()
-        self.layerLine.updateExtents()
-        self.layerPoint.setCrs(self.CRS)
-        self.layerPoint.triggerRepaint()
-        self.layerPoint.updateExtents()
+        self.setCrs(self.layerLine, self.CRS)
+        self.setCrs(self.layerPoint, self.CRS)
         if self.autoZoom():
             self.updateZoom()
-        if self.layerInter is None:
-            return
-        self.layerInter.setCrs(self.CRS)
-        self.layerInter.triggerRepaint()
-        self.layerInter.updateExtents()
+        if self.layerInter is not None:
+            self.setCrs(self.layerInter, self.CRS)
+
+    def setCrs(self, layer, CRS):
+        layer.setCrs(CRS)
+        layer.triggerRepaint()
+        layer.updateExtents()
