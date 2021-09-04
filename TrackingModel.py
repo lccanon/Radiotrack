@@ -5,11 +5,6 @@ from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor, Q
 from .csv_utils import types
 from .compat import message_log_levels, get_field
 
-SELECTED_COL_POS = 0
-
-"""Indicates how many columns were added into the model before the table_headers
-from the standard CSV files."""
-
 class TrackingModel(QStandardItemModel):
 
     """Brushes used for the table's cells' background"""
@@ -17,6 +12,8 @@ class TrackingModel(QStandardItemModel):
     BRUSH_BIANGULATED_ROW = QBrush(QColor(Qt.green).lighter(100))
     BRUSH_INVALID_ROW = QBrush(QColor(Qt.red).lighter(165))
 
+    """Indicates specific column informations/metadata"""
+    SELECTED_COL_POS = 0
     SORT_ROLE = Qt.UserRole + 1
     ID_ROLE = Qt.UserRole + 2
 
@@ -89,10 +86,10 @@ class TrackingModel(QStandardItemModel):
         return self.biangulation_detector.biangulations()
 
     def selected(self, row):
-        return self.item(row, SELECTED_COL_POS).checkState() == Qt.Checked
+        return self.item(row, self.SELECTED_COL_POS).checkState() == Qt.Checked
 
     def setSelected(self, row, state):
-        self.item(row, SELECTED_COL_POS).setCheckState(state)
+        self.item(row, self.SELECTED_COL_POS).setCheckState(state)
 
     def set_brush_row(self, row, brush):
         for col in range(self.columnCount()):
@@ -139,10 +136,11 @@ class TrackingModel(QStandardItemModel):
         is_first_row = True
         for row in array:
             if is_first_row:
-                row.insert(SELECTED_COL_POS, '')
+                row.insert(self.SELECTED_COL_POS, '')
                 self.setHorizontalHeaderLabels(row)
                 is_first_row = False
             else:
+                # XXX Necessarily insert selected_col as first value
                 items = []
                 checkbox = TrackingItem('')
                 checkbox.setCheckable(True)
