@@ -52,8 +52,8 @@ class QgsController:
         """
 
         # Draw the available points on their layers
-        self.drawLines(array, self.LINE_LAYER_BASE_NAME + self.layerSuffix)
-        self.drawPoints(array, self.POINT_LAYER_BASE_NAME + self.layerSuffix)
+        self.drawLines(array)
+        self.drawPoints(array)
         self.setId(array)
         self.setFilter([row['id_observation'] for row in array], False)
 
@@ -76,21 +76,9 @@ class QgsController:
                 QgsMessageLog.logMessage('Layer already removed',
                                          'Radiotrack', level = QGis.Info)
 
-    def drawLines(self, rows, layerName):
+    def drawLines(self, rows):
         """Draw the lines on a layer
         """
-
-        # Specify the geometry type
-        self.layerLine = QgsVectorLayer('LineString?crs=epsg:4326', layerName, 'memory')
-        self.layerLine.setCrs(self.CRS)
-        # Avoid warning when closing project
-        self.layerLine.setCustomProperty("skipMemoryLayersCheck", 1)
-        with edit(self.layerLine):
-            self.layerLine.addAttribute(QgsField("id", QVariant.String))
-            self.layerLine.addAttribute(QgsField("filter", QVariant.Int))
-            self.layerLine.addAttribute(QgsField("biangulation", QVariant.Int))
-        self.layerLine.setSubsetString('NOT filter')
-        provLine = self.layerLine.dataProvider()
 
         # Create and add line features
         features = []
@@ -99,29 +87,19 @@ class QgsController:
             newFeature = QgsFeature()
             newFeature.setGeometry(newGeometry)
             features.append(newFeature)
-        provLine.addFeatures(features)
 
-        # Add the layer to the Layers panel
-        QgsProject.instance().addMapLayers([self.layerLine])
+        # Specify the geometry type
+        layerName = self.LINE_LAYER_BASE_NAME + self.layerSuffix
+        self.layerLine = QgsVectorLayer('LineString?crs=epsg:4326',
+                                        layerName, 'memory')
+        self.initLayerFeatures(self.layerLine, features)
 
         #XXX return fids here
         fids = [feature.id() for feature in self.layerLine.getFeatures()]
 
-    def drawPoints(self, rows, layerName):
+    def drawPoints(self, rows):
         """Draw the points on a layer
         """
-
-        # Specify the geometry type
-        self.layerPoint = QgsVectorLayer('Point?crs=epsg:4326', layerName, 'memory')
-        self.layerPoint.setCrs(self.CRS)
-        # Avoid warning when closing project
-        self.layerPoint.setCustomProperty("skipMemoryLayersCheck", 1)
-        with edit(self.layerPoint):
-            self.layerPoint.addAttribute(QgsField("id", QVariant.String))
-            self.layerPoint.addAttribute(QgsField("filter", QVariant.Int))
-            self.layerPoint.addAttribute(QgsField("biangulation", QVariant.Int))
-        self.layerPoint.setSubsetString('NOT filter')
-        provPoint = self.layerPoint.dataProvider()
 
         # Create and add point features
         features = []
@@ -130,18 +108,58 @@ class QgsController:
             newFeature = QgsFeature()
             newFeature.setGeometry(newGeometry)
             features.append(newFeature)
-        provPoint.addFeatures(features)
+
+        # Specify the geometry type
+        layerName = self.POINT_LAYER_BASE_NAME + self.layerSuffix
+        self.layerPoint = QgsVectorLayer('Point?crs=epsg:4326',
+                                         layerName, 'memory')
+        self.initLayerFeatures(self.layerPoint, features)
 
         # Custom idRenderer for colors
         self.idRenderer = QgsCategorizedSymbolRenderer()
         self.idRenderer.setClassAttribute("id")
         self.layerPoint.setRenderer(self.idRenderer)
 
-        # Add the layer to the Layers panel
-        QgsProject.instance().addMapLayers([self.layerPoint])
-
         #XXX return ids here (check this it the same as for line)
         ids = [feature.id() for feature in self.layerPoint.getFeatures()]
+
+    def drawIntersection(self, biangs):
+        #TODO add point idRenderer for color based on name
+        #TODO add filtering depending on line
+        self.clearLayer(self.layerInter)
+
+        features = []
+        for obs1, obs2 in biangs:
+            geom1 = self.layerLine.getGeometry(obs1)
+            geom2 = self.layerLine.getGeometry(obs2)
+            newGeom = geom1.intersection(geom2)
+            if newGeom.type() == QgsWkbTypes.PointGeometry:
+                newFeat = QgsFeature()
+                newFeat.setGeometry(newGeom)
+                features.append(newFeat)
+
+        # Specify the geometry type
+        layerName = self.INTER_LAYER_BASE_NAME + self.layerSuffix
+        self.layerInter = QgsVectorLayer('Point?crs=epsg:4326',
+                                         layerName, 'memory')
+        self.initLayerFeatures(self.layerInter, features)
+        self.layerInter.setSubsetString('') # XXX temp
+
+    def initLayerFeatures(self, layer, features):
+        # Specify the geometry type
+        layer.setCrs(self.CRS)
+        # Avoid warning when closing project
+        layer.setCustomProperty("skipMemoryLayersCheck", 1)
+        with edit(layer):
+            layer.addAttribute(QgsField("id", QVariant.String))
+            layer.addAttribute(QgsField("filter", QVariant.Int))
+            layer.addAttribute(QgsField("biangulation", QVariant.Int))
+        layer.setSubsetString('NOT filter')
+        prov = layer.dataProvider()
+        prov.addFeatures(features)
+
+        # Add the layer to the Layers panel
+        QgsProject.instance().addMapLayers([layer])
 
     def updateRowLinePoint(self, row):
         """Update the value of a single observation"""
@@ -172,7 +190,7 @@ class QgsController:
             x = rowData[labels['X']]
             y = rowData[labels['Y']]
             azi = rowData[labels['AZIMUT']]
-            xRes, yRes = dst(y, x, azi, self.segmentLength)
+            xRes, yRes = dst(x, y, azi, self.segmentLength)
             point = QgsPoint(x, y)
             point2 = QgsPoint(yRes, xRes)
             return QgsGeometry.fromPolyline([point, point2])
@@ -234,34 +252,6 @@ class QgsController:
         layer.dataProvider().changeAttributeValues(attrs)
         layer.triggerRepaint()
         layer.updateExtents()
-
-    def drawIntersection(self, biangs):
-        #TODO add point idRenderer for color based on name
-        #TODO add filtering depending on line
-        self.clearLayer(self.layerInter)
-
-        # Specify the geometry type
-        layerName = self.LINE_LAYER_BASE_NAME + self.layerSuffix
-        self.layerInter = QgsVectorLayer('Point?crs=epsg:4326',
-                                         layerName, 'memory')
-        self.layerInter.setCrs(self.CRS)
-        # Avoid warning when closing project
-        self.layerInter.setCustomProperty("skipMemoryLayersCheck", 1)
-
-        provInter = self.layerInter.dataProvider()
-        features = []
-        for obs1, obs2 in biangs:
-            geom1 = self.layerLine.getGeometry(obs1)
-            geom2 = self.layerLine.getGeometry(obs2)
-            newGeom = geom1.intersection(geom2)
-            if newGeom.type() == QgsWkbTypes.PointGeometry:
-                newFeat = QgsFeature()
-                newFeat.setGeometry(newGeom)
-                features.append(newFeat)
-        provInter.addFeatures(features)
-
-        QgsProject.instance().addMapLayers([self.layerInter])
-        self.layerInter.triggerRepaint()
 
     def updateZoom(self):
         fullExtent = self.updateFullExtent()
