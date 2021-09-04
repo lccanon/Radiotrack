@@ -33,15 +33,13 @@ from qgis.PyQt.QtWidgets import QWidget, QFileDialog, QHeaderView, QStyle, QStyl
 
 from .compat import QShortcut
 
-from .algorithmNewPoint import dst
-
 from .compat import QDoubleSpinBox, QDateTimeEdit
 from .compat import QDockWidget, QItemEditorFactory, QStyledItemDelegate, message_log_levels, message_bar_levels
 
 from .manageDocumentation import importDoc
 
 from .csv_utils import select_csv_file, load_csv_to_array, save_array_to_csv, select_save_file
-from .layer_utils import createLayers, clearLayers, updateRowLinePoint, set_filter, set_segment_length, set_EPSG4326, set_project_CRS, set_id, get_id_colors, drawIntersection
+from .QgsController import QgsController
 from .TrackingModel import TrackingModel
 
 
@@ -143,6 +141,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         importDoc(self.documentationText)
         """Model initialization"""
         self.model = TrackingModel(self)
+        self.qgs = QgsController()
         self.model.itemChanged.connect(self.refresh)
         self.tableView.setModel(self.model)
         self.tableView.setSortingEnabled(True)
@@ -194,10 +193,10 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.dateComboBox.addItem("hh:mm:ss d/M/yyyy")
         self.dateComboBox.addItem("hh:mm:ss M/d/yyyy")
         """Set segment length"""
-        self.segmentLength.valueChanged.connect(set_segment_length)
+        self.segmentLength.valueChanged.connect(self.qgs.set_segment_length)
         """Set CRS"""
-        self.epsg4326.clicked.connect(set_EPSG4326)
-        self.projectCrs.clicked.connect(set_project_CRS)
+        self.epsg4326.clicked.connect(self.qgs.set_EPSG4326)
+        self.projectCrs.clicked.connect(self.qgs.set_project_CRS)
         """Intersection computation"""
         self.intersectionButton.clicked.connect(self.intersectBiangulation)
         self.demoButton.clicked.connect(self.importDemo)
@@ -225,10 +224,10 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         header = self.model.headerData(item.column(), Qt.Horizontal)
         if header == 'lon' or header == 'lat' or header == 'azi':
             row_info = self.model.get_row(item.row())
-            updateRowLinePoint(row_info)
+            self.qgs.updateRowLinePoint(row_info)
         elif header == 'id':
             row_info = self.model.get_row(item.row())
-            set_id([row_info])
+            self.qgs.set_id([row_info])
 
         # Re-apply filter and update filter id list
         if header == 'id':
@@ -271,7 +270,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Update canvas and create colors (must be done before
         # initializing the filters)
         layer_suffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
-        createLayers(self.model.get_all(), layer_suffix)
+        self.qgs.createLayers(self.model.get_all(), layer_suffix)
         # Update main and filter tab views
         self.currentProjectText.setText(filename)
         self.update_view()
@@ -314,7 +313,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                     iface.messageBar().pushInfo(u'Radiotrack: ', u'CSV file saved.')
 
     def clear(self):
-        clearLayers()
+        self.qgs.clearLayers()
         self.model.clear()
         self.currentProjectText.clear()
         # Clear filter tab view
@@ -355,8 +354,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                 if not self.tableView.isRowHidden(row):
                     rows_del.append(self.model.id(row))
                     self.tableView.setRowHidden(row, True)
-        set_filter(rows_add, False)
-        set_filter(rows_del, True)
+        self.qgs.set_filter(rows_add, False)
+        self.qgs.set_filter(rows_del, True)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
 
@@ -384,7 +383,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         ids = sorted(ids)
         self.idFilter.addItems(ids)
         # Set color for each item in the ids combo box
-        colors = get_id_colors()
+        colors = self.qgs.get_id_colors()
         for i in range(1, self.idFilter.count()):
             id = self.idFilter.itemText(i)
             self.idFilter.setItemData(i, colors[id], Qt.BackgroundColorRole)
@@ -457,7 +456,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
     def intersectBiangulation(self):
         """Get biangulated row ids as pairs of indices"""
         biangs = self.model.biangulations()
-        drawIntersection(biangs)
+        self.qgs.drawIntersection(biangs)
 
     def importDemo(self, checked):
         THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))

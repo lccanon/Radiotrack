@@ -12,7 +12,7 @@ class TrackingModel(QStandardItemModel):
     BRUSH_BIANGULATED_ROW = QBrush(QColor(Qt.green).lighter(100))
     BRUSH_INVALID_ROW = QBrush(QColor(Qt.red).lighter(165))
 
-    """Indicates specific column informations/metadata"""
+    """Indicates specific column information/metadata"""
     SELECTED_COL_POS = 0
     SORT_ROLE = Qt.UserRole + 1
     ID_ROLE = Qt.UserRole + 2
