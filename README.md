@@ -1,4 +1,4 @@
-# Radiotrack (v0.11)
+# Radiotrack (v0.12)
 
 Welcome to the Radiotrack's documentation. See also the QGIS
 [plugin page](http://plugins.qgis.org/plugins/Radiotrack/).
