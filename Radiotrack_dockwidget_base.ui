@@ -506,6 +506,7 @@ Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to 
   <tabstop>saveAsButton</tabstop>
   <tabstop>clearButton</tabstop>
   <tabstop>currentProjectText</tabstop>
+  <tabstop>scrollArea</tabstop>
   <tabstop>idFilter</tabstop>
   <tabstop>dateTimeStart</tabstop>
   <tabstop>dateTimeEnd</tabstop>
@@ -516,10 +517,14 @@ Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to 
   <tabstop>datetime</tabstop>
   <tabstop>triangulation</tabstop>
   <tabstop>selected</tabstop>
+  <tabstop>resetFilterButton</tabstop>
+  <tabstop>scrollArea_2</tabstop>
   <tabstop>segmentLength</tabstop>
   <tabstop>dateComboBox</tabstop>
   <tabstop>epsg4326</tabstop>
   <tabstop>projectCrs</tabstop>
+  <tabstop>intersectionVisible</tabstop>
+  <tabstop>intersectionUpdate</tabstop>
   <tabstop>documentationText</tabstop>
   <tabstop>demoButton</tabstop>
  </tabstops>
