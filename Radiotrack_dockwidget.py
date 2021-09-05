@@ -172,12 +172,12 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.position.stateChanged.connect(self.filter)
         self.azimuth.stateChanged.connect(self.filter)
         self.datetime.stateChanged.connect(self.filter)
-        self.biangulation.stateChanged.connect(self.filter)
-        """Decoration for biangulation"""
-        self.biangulation.setAutoFillBackground(True)
-        palette = self.biangulation.palette()
-        palette.setBrush(QPalette.Button, self.model.BRUSH_BIANGULATED_ROW)
-        self.biangulation.setPalette(palette)
+        self.triangulation.stateChanged.connect(self.filter)
+        """Decoration for triangulation"""
+        self.triangulation.setAutoFillBackground(True)
+        palette = self.triangulation.palette()
+        palette.setBrush(QPalette.Button, self.model.BRUSH_TRIANGULATED_ROW)
+        self.triangulation.setPalette(palette)
         self.selected.stateChanged.connect(self.filter)
         self.resetFilterButton.clicked.connect(self.reset_filter)
         self.tableView.horizontalHeader().sortIndicatorChanged.connect(self.filter)
@@ -198,7 +198,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.epsg4326.clicked.connect(self.qgs.setEPSG4326)
         self.projectCrs.clicked.connect(self.qgs.setProjectCRS)
         """Intersection computation"""
-        self.intersectionButton.clicked.connect(self.intersectBiangulation)
+        self.intersectionButton.clicked.connect(self.intersectTriangulation)
         self.demoButton.clicked.connect(self.importDemo)
 
     def refresh(self, item):
@@ -271,8 +271,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # initializing the filters)
         layerSuffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
         self.qgs.setLayerSuffix(layerSuffix)
-        biangs = self.model.biangulations()
-        self.qgs.createLayers(self.model.get_all(), biangs)
+        triangs = self.model.triangulations()
+        self.qgs.createLayers(self.model.get_all(), triangs)
         # Update main and filter tab views
         self.currentProjectText.setText(filename)
         self.update_view()
@@ -346,8 +346,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                     self.model.validAzimuth(row)) and \
                     (not self.datetime.isChecked() or
                      self.model.validDatetime(row)) and \
-                     (not self.biangulation.isChecked() or
-                      self.model.biangulated(row)) and \
+                     (not self.triangulation.isChecked() or
+                      self.model.triangulated(row)) and \
                       (not self.selected.isChecked() or self.model.selected(row)):
                 if self.tableView.isRowHidden(row):
                     rows_add.append(self.model.id(row))
@@ -416,7 +416,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.position.setChecked(False)
         self.azimuth.setChecked(False)
         self.datetime.setChecked(False)
-        self.biangulation.setChecked(False)
+        self.triangulation.setChecked(False)
         self.selected.setChecked(False)
 
     def link_datetime_edit(self):
@@ -455,10 +455,10 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.model.setDateTimeFormat(datetime_format)
         self.model.itemChanged.connect(self.refresh)
 
-    def intersectBiangulation(self):
-        """Get biangulated row ids as pairs of indices"""
-        biangs = self.model.biangulations()
-        self.qgs.updateIntersections(biangs)
+    def intersectTriangulation(self):
+        """Get triangulated row ids as pairs of indices"""
+        triangs = self.model.triangulations()
+        self.qgs.updateIntersections(triangs)
 
     def importDemo(self, checked):
         THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))

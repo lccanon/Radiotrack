@@ -41,13 +41,13 @@ class QgsController:
         """
         self.layerSuffix = layerSuffix
 
-    def createLayers(self, array, biangs):
+    def createLayers(self, array, triangs):
         """Create a layer based on the given model rows.
 
         Parameters
         ----------
         array : list of TrackingModel items
-        biangs : dict containing all biangulation correspondences
+        triangs : dict containing all triangulation correspondences
         """
 
         # Create specific renderer for coloring depending on id
@@ -59,7 +59,7 @@ class QgsController:
         # Draw the available points on their layers
         self.drawLines(array)
         self.drawPoints(array)
-        self.drawIntersections(biangs)
+        self.drawIntersections(triangs)
 
         # Setting the id
         self.setId(array)
@@ -122,28 +122,28 @@ class QgsController:
         #XXX return ids here (check this it the same as for line)
         ids = [feature.id() for feature in self.layerPoint.getFeatures()]
 
-    def drawIntersections(self, biangs):
+    def drawIntersections(self, triangs):
         # Specify the geometry type
         layerName = self.INTER_LAYER_BASE_NAME + self.layerSuffix
         self.layerInter = QgsVectorLayer('Point?crs=epsg:4326',
                                          layerName, 'memory')
 
         # Create and add points
-        geometries = self.computeIntersections(biangs).values()
+        geometries = self.computeIntersections(triangs).values()
         self.initLayerFeatures(self.layerInter, geometries)
 
         # Custom renderer for colors
         self.layerInter.setRenderer(self.idRendInter)
 
-    def computeIntersections(self, biangs):
+    def computeIntersections(self, triangs):
         """Compute all intersections between corresponding filtered lines."""
         geometries = {}
         fids = [feature.id() for feature in self.layerPoint.getFeatures()]
         for fid in fids:
             geom = QgsGeometry()
-            if fid in biangs:
+            if fid in triangs:
                 geom1 = self.layerLine.getGeometry(fid)
-                geom2 = self.layerLine.getGeometry(biangs[fid])
+                geom2 = self.layerLine.getGeometry(triangs[fid])
                 newGeom = geom1.intersection(geom2)
                 if newGeom.type() == QgsWkbTypes.PointGeometry:
                     geom = newGeom
@@ -163,7 +163,7 @@ class QgsController:
         with edit(layer):
             layer.addAttribute(QgsField("id", QVariant.String))
             layer.addAttribute(QgsField("filter", QVariant.Int))
-            layer.addAttribute(QgsField("biangulation", QVariant.Int))
+            layer.addAttribute(QgsField("triangulation", QVariant.Int))
         self.initFilter(layer)
         # Setting the filter must be called after initializing the
         # filter attributes
@@ -188,14 +188,14 @@ class QgsController:
         to initialize the value to False."""
         self.setFilter([idRow], False)
 
-    def updateIntersections(self, biangs):
+    def updateIntersections(self, triangs):
         """This method is required to update manually the intersections
         anytime there is an update to the data (keeping track of each
         change would be too cumbersome).
 
         """
         # Create and add points
-        geometries = self.computeIntersections(biangs)
+        geometries = self.computeIntersections(triangs)
         self.updateRowGeometry(self.layerInter, geometries)
 
     def updateRowGeometry(self, layer, geometries):

@@ -269,13 +269,13 @@ Any previously loaded data will be replaced. (Ctrl+Alt+I)</string>
                    </widget>
                   </item>
                   <item row="3" column="0">
-                   <widget class="QCheckBox" name="biangulation">
+                   <widget class="QCheckBox" name="triangulation">
                     <property name="toolTip">
                      <string>Show only data for which other data have the same datetime.
 Those data are green in the table, unless they contain errors.</string>
                     </property>
                     <property name="text">
-                     <string>Biangulation</string>
+                     <string>Triangulation</string>
                     </property>
                    </widget>
                   </item>
@@ -524,7 +524,7 @@ Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to 
   <tabstop>position</tabstop>
   <tabstop>azimuth</tabstop>
   <tabstop>datetime</tabstop>
-  <tabstop>biangulation</tabstop>
+  <tabstop>triangulation</tabstop>
   <tabstop>selected</tabstop>
   <tabstop>resetFilterButton</tabstop>
   <tabstop>segmentLength</tabstop>

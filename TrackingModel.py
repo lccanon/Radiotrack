@@ -9,7 +9,7 @@ class TrackingModel(QStandardItemModel):
 
     """Brushes used for the table's cells' background"""
     BRUSH_VALID_ROW = QBrush(QColor(Qt.white))
-    BRUSH_BIANGULATED_ROW = QBrush(QColor(Qt.green).lighter(100))
+    BRUSH_TRIANGULATED_ROW = QBrush(QColor(Qt.green).lighter(100))
     BRUSH_INVALID_ROW = QBrush(QColor(Qt.red).lighter(165))
 
     """Indicates specific column information/metadata"""
@@ -19,13 +19,13 @@ class TrackingModel(QStandardItemModel):
 
     def __init__(self, parent):
         super(TrackingModel, self).__init__(parent)
-        self.biangulation_detector = BiangulationDetector(self)
+        self.triangulation_detector = TriangulationDetector(self)
         self.setSortRole(self.SORT_ROLE)
         self.setDateTimeFormat("yyyy-MM-dd hh:mm:ss")
 
     def clear(self):
         super(TrackingModel, self).clear()
-        self.biangulation_detector.clear()
+        self.triangulation_detector.clear()
 
     #XXX rename id into fid (Feature id)
     def id(self, row):
@@ -46,7 +46,7 @@ class TrackingModel(QStandardItemModel):
         for row in range(self.rowCount()):
             if self.item(row, date_index).parse():
                 update_color = True
-                self.biangulation_detector.update_biangulation(row)
+                self.triangulation_detector.update_triangulation(row)
         if update_color:
             self.update_color(range(self.rowCount()))
 
@@ -79,11 +79,11 @@ class TrackingModel(QStandardItemModel):
         date_index = headers.index('datetime')
         return self.item(row, date_index).valid()
 
-    def biangulated(self, row):
-        return self.biangulation_detector.biangulated(row)
+    def triangulated(self, row):
+        return self.triangulation_detector.triangulated(row)
 
-    def biangulations(self):
-        return self.biangulation_detector.biangulations()
+    def triangulations(self):
+        return self.triangulation_detector.triangulations()
 
     def selected(self, row):
         return self.item(row, self.SELECTED_COL_POS).checkState() == Qt.Checked
@@ -105,8 +105,8 @@ class TrackingModel(QStandardItemModel):
         for row in rows:
             if not self.valid(row):
                 self.set_brush_row(row, self.BRUSH_INVALID_ROW)
-            elif self.biangulated(row):
-                self.set_brush_row(row, self.BRUSH_BIANGULATED_ROW)
+            elif self.triangulated(row):
+                self.set_brush_row(row, self.BRUSH_TRIANGULATED_ROW)
             else:
                 self.set_brush_row(row, self.BRUSH_VALID_ROW)
 
@@ -114,11 +114,11 @@ class TrackingModel(QStandardItemModel):
         # Test whether the parsing was successful (when it was not
         # already parsed)
         success = item.parse()
-        # Update biangulation data (must be done before any call to
-        # biangulated) and table color
+        # Update triangulation data (must be done before any call to
+        # triangulated) and table color
         header = self.headerData(item.column(), Qt.Horizontal)
         if header == 'id' or (item.valid() and header == 'datetime'):
-            self.biangulation_detector.update_biangulation(item.row())
+            self.triangulation_detector.update_triangulation(item.row())
             # Update the color of current row and possibly other impacted rows
             self.update_color(range(self.rowCount()))
         # Update validity color of local row in case of successful parsing
@@ -157,7 +157,7 @@ class TrackingModel(QStandardItemModel):
             # should start at 1 because layer ids start at 1
             # XXX let Qgis returns these ids
             self.setId(row, row + 1)
-            self.biangulation_detector.update_biangulation(row)
+            self.triangulation_detector.update_triangulation(row)
         self.update_color(range(self.rowCount()))
 
     def get_row(self, row):
@@ -268,7 +268,7 @@ class TrackingItem(QStandardItem):
             self.setInvalid()
             return False
 
-class BiangulationDetector:
+class TriangulationDetector:
 
     def __init__(self, model):
         self.rows_for_date = {}
@@ -277,7 +277,7 @@ class BiangulationDetector:
     def clear(self):
         self.rows_for_date = {}
 
-    def update_biangulation(self, row):
+    def update_triangulation(self, row):
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
         id_sp_index = headers.index('id')
@@ -299,7 +299,7 @@ class BiangulationDetector:
         # Register the row into the dates map
         self.rows_for_date[row_id_sp][row_date].add(row_id)
 
-    def biangulated(self, row):
+    def triangulated(self, row):
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
         id_sp_index = headers.index('id')
@@ -308,12 +308,12 @@ class BiangulationDetector:
         row_date = self.model.item(row, date_index).text()
         return len(self.rows_for_date[row_id_sp][row_date]) >= 2
 
-    def biangulations(self):
-        biangs = {}
+    def triangulations(self):
+        triangs = {}
         for row_id_sp, id_dict in self.rows_for_date.items():
             for _, id_date_set in id_dict.items():
                 for id1 in id_date_set:
                     for id2 in id_date_set:
                         if id1 < id2:
-                            biangs[id1] = id2
-        return biangs
+                            triangs[id1] = id2
+        return triangs

@@ -10,7 +10,7 @@ Welcome to the Radiotrack's documentation. See also the QGIS
 - Indicate errors in the data
 - Automatic map updates when changing the data
 - Filter measures based on individuals and dates
-- Highlight biangulations
+- Highlight triangulations
 - Alerts given with QGIS' message bar
 - Detailed information is logged into QGIS' standard window
 
