@@ -30,6 +30,7 @@ class QgsController:
         # Autozoom and properties
         self.currExtent = None
         self.segmentLength = 1
+        self.layerInterVisible = False
 
     def setLayerSuffix(self, layerSuffix):
         """Indicate the suffix of all layers.
@@ -60,6 +61,7 @@ class QgsController:
         self.drawLines(array)
         self.drawPoints(array)
         self.drawIntersections(triangs)
+        iface.layerTreeView().setLayerVisible(self.layerInter, self.layerInterVisible)
 
         # Setting the id
         self.setId(array)
@@ -120,7 +122,7 @@ class QgsController:
         self.layerPoint.setRenderer(self.idRendPoint)
 
         #XXX return ids here (check this it the same as for line)
-        ids = [feature.id() for feature in self.layerPoint.getFeatures()]
+        fids = [feature.id() for feature in self.layerPoint.getFeatures()]
 
     def drawIntersections(self, triangs):
         # Specify the geometry type
@@ -352,3 +354,7 @@ class QgsController:
         layer.setCrs(CRS)
         layer.triggerRepaint()
         layer.updateExtents()
+
+    def toggleIntersectionsVisible(self):
+        self.layerInterVisible = not self.layerInterVisible
+        iface.layerTreeView().setLayerVisible(self.layerInter, self.layerInterVisible)

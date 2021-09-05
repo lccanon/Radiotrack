@@ -105,7 +105,7 @@ Any previously loaded data will be replaced. (Ctrl+Alt+I)</string>
       </widget>
       <widget class="QWidget" name="filters">
        <attribute name="title">
-        <string>Filters/Properties</string>
+        <string>Filters</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_9">
         <item>
@@ -117,189 +117,25 @@ Any previously loaded data will be replaced. (Ctrl+Alt+I)</string>
            <property name="geometry">
             <rect>
              <x>0</x>
-             <y>0</y>
-             <width>493</width>
-             <height>650</height>
+             <y>-89</y>
+             <width>484</width>
+             <height>458</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
-             <widget class="QGroupBox" name="groupBox_6">
+             <widget class="QGroupBox" name="groupBox">
               <property name="toolTip">
-               <string>Hide uninteresting data in the table and on the map.</string>
+               <string>View only the data of the selected radioemitter.</string>
               </property>
               <property name="title">
-               <string>Filters</string>
+               <string>Id</string>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_8">
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
                <item>
-                <widget class="QGroupBox" name="groupBox">
+                <widget class="QComboBox" name="idFilter">
                  <property name="toolTip">
                   <string>View only the data of the selected radioemitter.</string>
-                 </property>
-                 <property name="title">
-                  <string>Id</string>
-                 </property>
-                 <layout class="QHBoxLayout" name="horizontalLayout_5">
-                  <item>
-                   <widget class="QComboBox" name="idFilter">
-                    <property name="toolTip">
-                     <string>View only the data of the selected radioemitter.</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QGroupBox" name="groupBox_3">
-                 <property name="toolTip">
-                  <string>View only the data between the two times (included).</string>
-                 </property>
-                 <property name="title">
-                  <string>Datetime</string>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_6">
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_9">
-                    <item>
-                     <widget class="QLabel" name="label_4">
-                      <property name="toolTip">
-                       <string>Use the up and down arrows in this field to change both fields at once.</string>
-                      </property>
-                      <property name="text">
-                       <string>From</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="RollingDateTimeEdit" name="dateTimeStart">
-                      <property name="toolTip">
-                       <string>Use the up and down arrows in this field to change both fields at once.</string>
-                      </property>
-                      <property name="wrapping">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_8">
-                    <item>
-                     <widget class="QLabel" name="label_3">
-                      <property name="toolTip">
-                       <string>Set this field some time after the &quot;From&quot; one.</string>
-                      </property>
-                      <property name="text">
-                       <string>To</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="RollingDateTimeEdit" name="dateTimeEnd">
-                      <property name="toolTip">
-                       <string>Set this field some time after the &quot;From&quot; one.</string>
-                      </property>
-                      <property name="wrapping">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_4">
-                    <item>
-                     <widget class="QCheckBox" name="dateTimeFixedInterval">
-                      <property name="toolTip">
-                       <string>Define whether the interval between both datetimes should remain fixed when rolling.</string>
-                      </property>
-                      <property name="text">
-                       <string>Fixed interval</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QPushButton" name="dateTimeAdjust">
-                      <property name="text">
-                       <string>Adjust to data</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QGroupBox" name="groupBox_2">
-                 <property name="title">
-                  <string>Keep only:</string>
-                 </property>
-                 <layout class="QGridLayout" name="gridLayout_2">
-                  <item row="0" column="0">
-                   <widget class="QCheckBox" name="position">
-                    <property name="toolTip">
-                     <string>Show only data having correct latitude and longitude.</string>
-                    </property>
-                    <property name="text">
-                     <string>Valid position</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="0">
-                   <widget class="QCheckBox" name="azimuth">
-                    <property name="toolTip">
-                     <string>Show only data having a correct azimuth.</string>
-                    </property>
-                    <property name="text">
-                     <string>Valid azimuth</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="2" column="0">
-                   <widget class="QCheckBox" name="datetime">
-                    <property name="toolTip">
-                     <string>Show only data having a datetime the plugin could read.</string>
-                    </property>
-                    <property name="text">
-                     <string>Valid datetime</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="3" column="0">
-                   <widget class="QCheckBox" name="triangulation">
-                    <property name="toolTip">
-                     <string>Show only data for which other data have the same datetime.
-Those data are green in the table, unless they contain errors.</string>
-                    </property>
-                    <property name="text">
-                     <string>Triangulation</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="4" column="0">
-                   <widget class="QCheckBox" name="selected">
-                    <property name="toolTip">
-                     <string>Show only data whose line in the table is checked.
-Those are the lines that will be exported.</string>
-                    </property>
-                    <property name="text">
-                     <string>Selected</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="resetFilterButton">
-                 <property name="toolTip">
-                  <string>Restore default filters, thus showing again all lines and points.</string>
-                 </property>
-                 <property name="text">
-                  <string>Reset filters</string>
                  </property>
                 </widget>
                </item>
@@ -307,120 +143,155 @@ Those are the lines that will be exported.</string>
              </widget>
             </item>
             <item>
-             <spacer name="verticalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QGroupBox" name="groupBox_4">
+             <widget class="QGroupBox" name="groupBox_3">
               <property name="toolTip">
-               <string>Change plugin's settings.</string>
+               <string>View only the data between the two times (included).</string>
               </property>
               <property name="title">
-               <string>Properties</string>
+               <string>Datetime</string>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_5">
+              <layout class="QVBoxLayout" name="verticalLayout_6">
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <layout class="QHBoxLayout" name="horizontalLayout_9">
                  <item>
-                  <widget class="QLabel" name="label_2">
+                  <widget class="QLabel" name="label_4">
                    <property name="toolTip">
-                    <string>Size of the lines representing azimuths on the map.</string>
+                    <string>Use the up and down arrows in this field to change both fields at once.</string>
                    </property>
                    <property name="text">
-                    <string>Segment length</string>
+                    <string>From</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QDoubleSpinBox" name="segmentLength">
+                  <widget class="RollingDateTimeEdit" name="dateTimeStart">
                    <property name="toolTip">
-                    <string>Size of the lines representing azimuths on the map.</string>
+                    <string>Use the up and down arrows in this field to change both fields at once.</string>
                    </property>
-                   <property name="suffix">
-                    <string> km</string>
-                   </property>
-                   <property name="value">
-                    <double>1.000000000000000</double>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_7">
-                 <item>
-                  <widget class="QLabel" name="label">
-                   <property name="toolTip">
-                    <string>Change how the datetimes are displayed in the plugin.</string>
-                   </property>
-                   <property name="text">
-                    <string>Datetime format</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="dateComboBox">
-                   <property name="toolTip">
-                    <string>Change how the datetimes are displayed in the plugin.</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_12">
-                 <item>
-                  <widget class="QLabel" name="label_5">
-                   <property name="toolTip">
-                    <string>Coordinate Reference System.
-Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to map coordinates.</string>
-                   </property>
-                   <property name="text">
-                    <string>CRS</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="epsg4326">
-                   <property name="toolTip">
-                    <string>Also known as WGS 84, the current standard for GPS coordinates.</string>
-                   </property>
-                   <property name="text">
-                    <string>EPSG:4326</string>
-                   </property>
-                   <property name="checked">
+                   <property name="wrapping">
                     <bool>true</bool>
                    </property>
-                   <attribute name="buttonGroup">
-                    <string notr="true">buttonGroup</string>
-                   </attribute>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_8">
+                 <item>
+                  <widget class="QLabel" name="label_3">
+                   <property name="toolTip">
+                    <string>Set this field some time after the &quot;From&quot; one.</string>
+                   </property>
+                   <property name="text">
+                    <string>To</string>
+                   </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QRadioButton" name="projectCrs">
+                  <widget class="RollingDateTimeEdit" name="dateTimeEnd">
                    <property name="toolTip">
-                    <string>Use the CRS shown in the bottom right corner.</string>
+                    <string>Set this field some time after the &quot;From&quot; one.</string>
+                   </property>
+                   <property name="wrapping">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <item>
+                  <widget class="QCheckBox" name="dateTimeFixedInterval">
+                   <property name="toolTip">
+                    <string>Define whether the interval between both datetimes should remain fixed when rolling.</string>
                    </property>
                    <property name="text">
-                    <string>Project CRS</string>
+                    <string>Fixed interval</string>
                    </property>
-                   <attribute name="buttonGroup">
-                    <string notr="true">buttonGroup</string>
-                   </attribute>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="dateTimeAdjust">
+                   <property name="text">
+                    <string>Adjust to data</string>
+                   </property>
                   </widget>
                  </item>
                 </layout>
                </item>
               </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_2">
+              <property name="title">
+               <string>Keep only:</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_2">
+               <item row="4" column="0">
+                <widget class="QCheckBox" name="selected">
+                 <property name="toolTip">
+                  <string>Show only data whose line in the table is checked.
+Those are the lines that will be exported.</string>
+                 </property>
+                 <property name="text">
+                  <string>Selected</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QCheckBox" name="position">
+                 <property name="toolTip">
+                  <string>Show only data having correct latitude and longitude.</string>
+                 </property>
+                 <property name="text">
+                  <string>Valid position</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QCheckBox" name="azimuth">
+                 <property name="toolTip">
+                  <string>Show only data having a correct azimuth.</string>
+                 </property>
+                 <property name="text">
+                  <string>Valid azimuth</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QCheckBox" name="datetime">
+                 <property name="toolTip">
+                  <string>Show only data having a datetime the plugin could read.</string>
+                 </property>
+                 <property name="text">
+                  <string>Valid datetime</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QCheckBox" name="triangulation">
+                 <property name="toolTip">
+                  <string>Show only data for which other data have the same datetime.
+Those data are green in the table, unless they contain errors.</string>
+                 </property>
+                 <property name="text">
+                  <string>Triangulation</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="resetFilterButton">
+              <property name="toolTip">
+               <string>Restore default filters, thus showing again all lines and points.</string>
+              </property>
+              <property name="text">
+               <string>Reset filters</string>
+              </property>
              </widget>
             </item>
             <item>
@@ -442,41 +313,160 @@ Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to 
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="computation">
+      <widget class="QWidget" name="properties">
        <attribute name="title">
-        <string>Intersections</string>
+        <string>Properties</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
-          <item>
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Layer with intersections</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="intersectionButton">
-            <property name="text">
-             <string>Update</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
+         <widget class="QScrollArea" name="scrollArea_2">
+          <property name="widgetResizable">
+           <bool>true</bool>
           </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>598</height>
-           </size>
-          </property>
-         </spacer>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>498</width>
+             <height>369</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <item>
+               <widget class="QLabel" name="label_2">
+                <property name="toolTip">
+                 <string>Size of the lines representing azimuths on the map.</string>
+                </property>
+                <property name="text">
+                 <string>Segment length</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="segmentLength">
+                <property name="toolTip">
+                 <string>Size of the lines representing azimuths on the map.</string>
+                </property>
+                <property name="suffix">
+                 <string> km</string>
+                </property>
+                <property name="value">
+                 <double>1.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_7">
+              <item>
+               <widget class="QLabel" name="label">
+                <property name="toolTip">
+                 <string>Change how the datetimes are displayed in the plugin.</string>
+                </property>
+                <property name="text">
+                 <string>Datetime format</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="dateComboBox">
+                <property name="toolTip">
+                 <string>Change how the datetimes are displayed in the plugin.</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_12">
+              <item>
+               <widget class="QLabel" name="label_5">
+                <property name="toolTip">
+                 <string>Coordinate Reference System.
+Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to map coordinates.</string>
+                </property>
+                <property name="text">
+                 <string>CRS</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="epsg4326">
+                <property name="toolTip">
+                 <string>Also known as WGS 84, the current standard for GPS coordinates.</string>
+                </property>
+                <property name="text">
+                 <string>EPSG:4326</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+                <attribute name="buttonGroup">
+                 <string notr="true">buttonGroup</string>
+                </attribute>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="projectCrs">
+                <property name="toolTip">
+                 <string>Use the CRS shown in the bottom right corner.</string>
+                </property>
+                <property name="text">
+                 <string>Project CRS</string>
+                </property>
+                <attribute name="buttonGroup">
+                 <string notr="true">buttonGroup</string>
+                </attribute>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_4">
+              <property name="title">
+               <string>Intersections (triangulations)</string>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_10">
+               <item>
+                <widget class="QCheckBox" name="intersectionVisible">
+                 <property name="text">
+                  <string>Visible</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="intersectionUpdate">
+                 <property name="toolTip">
+                  <string>Recompute the all intersections (must be done manually).</string>
+                 </property>
+                 <property name="text">
+                  <string>Update</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -526,12 +516,10 @@ Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to 
   <tabstop>datetime</tabstop>
   <tabstop>triangulation</tabstop>
   <tabstop>selected</tabstop>
-  <tabstop>resetFilterButton</tabstop>
   <tabstop>segmentLength</tabstop>
   <tabstop>dateComboBox</tabstop>
   <tabstop>epsg4326</tabstop>
   <tabstop>projectCrs</tabstop>
-  <tabstop>intersectionButton</tabstop>
   <tabstop>documentationText</tabstop>
   <tabstop>demoButton</tabstop>
  </tabstops>

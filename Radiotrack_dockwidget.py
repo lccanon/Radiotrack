@@ -198,7 +198,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.epsg4326.clicked.connect(self.qgs.setEPSG4326)
         self.projectCrs.clicked.connect(self.qgs.setProjectCRS)
         """Intersection computation"""
-        self.intersectionButton.clicked.connect(self.intersectTriangulation)
+        self.intersectionVisible.clicked.connect(self.qgs.toggleIntersectionsVisible)
+        self.intersectionUpdate.clicked.connect(self.intersectTriangulation)
         self.demoButton.clicked.connect(self.importDemo)
 
     def refresh(self, item):
