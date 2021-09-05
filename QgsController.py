@@ -3,7 +3,7 @@
 from random import randrange
 
 from qgis.utils import iface
-from qgis.core import QgsProject, QgsMessageLog
+from qgis.core import QgsProject, QgsMessageLog, Qgis
 from qgis.core import QgsVectorLayer, QgsFeature, QgsField, edit
 from qgis.core import QgsGeometry, QgsPoint, QgsPointXY, QgsWkbTypes
 from qgis.core import QgsCoordinateTransform, QgsCoordinateReferenceSystem
@@ -41,29 +41,40 @@ class QgsController:
         """
         self.layerSuffix = layerSuffix
 
-    def createLayers(self, array):
+    def createLayers(self, array, biangs):
         """Create a layer based on the given model rows.
 
         Parameters
         ----------
         array : list of TrackingModel items
-        layerSuffix : str
-            A potential suffix to add to all the layer created
+        biangs : dict containing all biangulation correspondences
         """
+
+        # Create specific renderer for coloring depending on id
+        self.idRendPoint = QgsCategorizedSymbolRenderer()
+        self.idRendPoint.setClassAttribute("id")
+        self.idRendInter = QgsCategorizedSymbolRenderer()
+        self.idRendInter.setClassAttribute("id")
 
         # Draw the available points on their layers
         self.drawLines(array)
         self.drawPoints(array)
+        self.drawIntersections(biangs)
+
+        # Setting the id
         self.setId(array)
-        self.setFilter([row['id_observation'] for row in array], False)
+
+        # If zoom set has not changed (autozoom), adjust the zoom
+        if self.autoZoom():
+            self.updateZoom()
 
     def clearLayers(self):
-        self.clearLayer(self.layerLine)
-        self.layerLine = None
-        self.clearLayer(self.layerPoint)
-        self.layerPoint = None
         self.clearLayer(self.layerInter)
         self.layerInter = None
+        self.clearLayer(self.layerPoint)
+        self.layerPoint = None
+        self.clearLayer(self.layerLine)
+        self.layerLine = None
         iface.mapCanvas().refresh()
         self.currExtent = None
 
@@ -74,7 +85,7 @@ class QgsController:
                 QgsProject.instance().removeMapLayers([layer.id()])
             except:
                 QgsMessageLog.logMessage('Layer already removed',
-                                         'Radiotrack', level = QGis.Info)
+                                         'Radiotrack', level = Qgis.Info)
 
     def drawLines(self, rows):
         """Draw the lines on a layer
@@ -105,42 +116,46 @@ class QgsController:
 
         self.initLayerFeatures(self.layerPoint, geometries)
 
-        # Custom idRenderer for colors
-        self.idRenderer = QgsCategorizedSymbolRenderer()
-        self.idRenderer.setClassAttribute("id")
-        self.layerPoint.setRenderer(self.idRenderer)
+        # Custom renderer for colors
+        self.layerPoint.setRenderer(self.idRendPoint)
 
         #XXX return ids here (check this it the same as for line)
         ids = [feature.id() for feature in self.layerPoint.getFeatures()]
 
     def drawIntersections(self, biangs):
-        #TODO add point idRenderer for color based on name
-        #TODO add filtering depending on line
-        self.clearLayer(self.layerInter)
-
         # Specify the geometry type
         layerName = self.INTER_LAYER_BASE_NAME + self.layerSuffix
         self.layerInter = QgsVectorLayer('Point?crs=epsg:4326',
                                          layerName, 'memory')
 
         # Create and add points
-        geometries = []
-        for obs1, obs2 in biangs:
-            geom1 = self.layerLine.getGeometry(obs1)
-            geom2 = self.layerLine.getGeometry(obs2)
-            newGeom = geom1.intersection(geom2)
-            if newGeom.type() == QgsWkbTypes.PointGeometry:
-                newFeat = QgsFeature()
-                newFeat.setGeometry(newGeom)
-                geometries.append(newGeom)
-
+        geometries = self.computeIntersections(biangs).values()
         self.initLayerFeatures(self.layerInter, geometries)
-        self.layerInter.setSubsetString('') # XXX temp
+
+        # Custom renderer for colors
+        self.layerInter.setRenderer(self.idRendInter)
+
+    def computeIntersections(self, biangs):
+        """Compute all intersections between corresponding filtered lines."""
+        geometries = {}
+        fids = [feature.id() for feature in self.layerPoint.getFeatures()]
+        for fid in fids:
+            geom = QgsGeometry()
+            if fid in biangs:
+                geom1 = self.layerLine.getGeometry(fid)
+                geom2 = self.layerLine.getGeometry(biangs[fid])
+                newGeom = geom1.intersection(geom2)
+                if newGeom.type() == QgsWkbTypes.PointGeometry:
+                    geom = newGeom
+            geometries[fid] = geom
+        return geometries
 
     def initLayerFeatures(self, layer, geometries):
         features = [QgsFeature() for i in geometries]
         for geom, feat in zip(geometries, features):
             feat.setGeometry(geom)
+        prov = layer.dataProvider()
+        prov.addFeatures(features)
         # Specify the geometry type
         layer.setCrs(self.CRS)
         # Avoid warning when closing project
@@ -149,9 +164,10 @@ class QgsController:
             layer.addAttribute(QgsField("id", QVariant.String))
             layer.addAttribute(QgsField("filter", QVariant.Int))
             layer.addAttribute(QgsField("biangulation", QVariant.Int))
+        self.initFilter(layer)
+        # Setting the filter must be called after initializing the
+        # filter attributes
         layer.setSubsetString('NOT filter')
-        prov = layer.dataProvider()
-        prov.addFeatures(features)
 
         # Add the layer to the Layers panel
         QgsProject.instance().addMapLayers([layer])
@@ -161,10 +177,10 @@ class QgsController:
         idRow = row['id_observation']
 
         newGeometry = self.makeLineGeometry(row)
-        self.updateRowGeometry(self.layerLine, idRow, newGeometry)
+        self.updateRowGeometry(self.layerLine, {idRow: newGeometry})
 
         newGeometry = self.makePointGeometry(row)
-        self.updateRowGeometry(self.layerPoint, idRow, newGeometry)
+        self.updateRowGeometry(self.layerPoint, {idRow: newGeometry})
 
         """The current row geometries are updated when the row is edited.
         Thus, it is not an hidden row. Thus, if it has to be kept by the
@@ -172,11 +188,22 @@ class QgsController:
         to initialize the value to False."""
         self.setFilter([idRow], False)
 
-    def updateRowGeometry(self, layer, idRow, geom):
+    def updateIntersections(self, biangs):
+        """This method is required to update manually the intersections
+        anytime there is an update to the data (keeping track of each
+        change would be too cumbersome).
+
+        """
+        # Create and add points
+        geometries = self.computeIntersections(biangs)
+        self.updateRowGeometry(self.layerInter, geometries)
+
+    def updateRowGeometry(self, layer, geometries):
         if layer is None:
             return
         layer.startEditing()
-        layer.changeGeometry(idRow, geom)
+        for idRow, geom in geometries.items():
+            layer.changeGeometry(idRow, geom)
         layer.commitChanges()
         layer.updateExtents()
 
@@ -204,19 +231,21 @@ class QgsController:
         if len(array) == 0 or self.layerPoint is None:
             return
 
-        self.updateRenderer([row['id'] for row in array])
+        self.updateRenderer(self.idRendPoint, [row['id'] for row in array], 3)
+        self.updateRenderer(self.idRendInter, [row['id'] for row in array], 2)
 
         fieldIdx = self.layerPoint.dataProvider().fieldNameIndex('id')
         attrs = {row['id_observation']: {fieldIdx: row['id']} for row in array}
 
         self.changeAttributeValues(self.layerLine, attrs)
         self.changeAttributeValues(self.layerPoint, attrs)
+        self.changeAttributeValues(self.layerInter, attrs)
 
-    def updateRenderer(self, indexes):
+    def updateRenderer(self, idRend, indexes, size):
         if len(indexes) == 0:
             return
 
-        ids = set([cat.value() for cat in self.idRenderer.categories()])
+        ids = set([cat.value() for cat in idRend.categories()])
         for id in indexes:
             if id not in ids:
                 """Generate a random color such that the lightness is sufficient to
@@ -225,15 +254,29 @@ class QgsController:
                 rgb = randrange(256), randrange(256), randrange(256)
                 lighter = max(0, 256 - sum(rgb)) // 3
                 rgb = tuple(col + lighter for col in rgb)
-                symbol = QgsMarkerSymbol.createSimple({'size' : "3.0",
+                symbol = QgsMarkerSymbol.createSimple({'size' : str(size),
                                                        'color' : "%d,%d,%d" % rgb})
                 cat = QgsRendererCategory(id, symbol, id)
-                self.idRenderer.addCategory(cat)
+                idRend.addCategory(cat)
                 ids.add(id)
 
     def getIdColors(self):
         return {cat.value(): cat.symbol().color()
-                for cat in self.idRenderer.categories()}
+                for cat in self.idRendPoint.categories()}
+
+    def initFilter(self, layer):
+        """Initialize the filtering attribute to show all features (must be
+        called before setting the filtering rule to get the list of
+        feature ids).
+        """
+        if layer is None:
+            return
+
+        fieldIdx = layer.dataProvider().fieldNameIndex('filter')
+        fids = [feature.id() for feature in layer.getFeatures()]
+        attrs = {featureId: {fieldIdx: False} for featureId in fids}
+
+        self.changeAttributeValues(layer, attrs)
 
     def setFilter(self, idRows, isFiltered):
         if len(idRows) == 0 or self.layerPoint is None:
@@ -245,12 +288,15 @@ class QgsController:
 
         self.changeAttributeValues(self.layerLine, attrs)
         self.changeAttributeValues(self.layerPoint, attrs)
+        self.changeAttributeValues(self.layerInter, attrs)
 
         # If zoom set has not changed (autozoom), adjust the zoom
         if self.autoZoom():
             self.updateZoom()
 
     def changeAttributeValues(self, layer, attrs):
+        """Change the values of an attribute that can possibly impact the
+        graphical output (filtering, renderer)"""
         if layer is None:
             return
         layer.dataProvider().changeAttributeValues(attrs)

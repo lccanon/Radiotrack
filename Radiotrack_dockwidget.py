@@ -271,7 +271,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # initializing the filters)
         layerSuffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
         self.qgs.setLayerSuffix(layerSuffix)
-        self.qgs.createLayers(self.model.get_all())
+        biangs = self.model.biangulations()
+        self.qgs.createLayers(self.model.get_all(), biangs)
         # Update main and filter tab views
         self.currentProjectText.setText(filename)
         self.update_view()
@@ -457,7 +458,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
     def intersectBiangulation(self):
         """Get biangulated row ids as pairs of indices"""
         biangs = self.model.biangulations()
-        self.qgs.drawIntersections(biangs)
+        self.qgs.updateIntersections(biangs)
 
     def importDemo(self, checked):
         THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))

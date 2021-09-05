@@ -309,11 +309,11 @@ class BiangulationDetector:
         return len(self.rows_for_date[row_id_sp][row_date]) >= 2
 
     def biangulations(self):
-        biangs = []
+        biangs = {}
         for row_id_sp, id_dict in self.rows_for_date.items():
             for _, id_date_set in id_dict.items():
                 for id1 in id_date_set:
                     for id2 in id_date_set:
                         if id1 < id2:
-                            biangs.append((id1, id2))
+                            biangs[id1] = id2
         return biangs
