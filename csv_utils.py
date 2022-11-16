@@ -18,8 +18,8 @@ tableHeaders = ['id', 'datetime', 'lat', 'lon', 'azi']
 
 def writeCsv(csvFileName, array):
     try:
-        with io.open(csvFileName, 'w', newline = '') as outpulFile:
-            writer = csv.writer(outpulFile, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_MINIMAL)
+        with io.open(csvFileName, 'w', newline = '') as outputFile:
+            writer = csv.writer(outputFile, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_MINIMAL)
 
             writer.writerows(array)
 
