@@ -3,7 +3,7 @@ from qgis.PyQt.QtCore import Qt, QDateTime
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor, QFont
 
 from .csv_utils import types
-from .compat import message_log_levels, get_field
+from .compat import messageLogLevels, getField
 
 class TrackingModel(QStandardItemModel):
 
@@ -13,45 +13,45 @@ class TrackingModel(QStandardItemModel):
     BRUSH_INVALID_ROW = QBrush(QColor(Qt.red).lighter(165))
 
     """Indicates specific column information/metadata"""
-    SELECTED_COL_POS = 0
+    selectedCol_POS = 0
     SORT_ROLE = Qt.UserRole + 1
     ID_ROLE = Qt.UserRole + 2
 
     def __init__(self, parent):
         super(TrackingModel, self).__init__(parent)
-        self.triangulation_detector = TriangulationDetector(self)
+        self.triangulationDetector = TriangulationDetector(self)
         self.setSortRole(self.SORT_ROLE)
-        self.setDateTimeFormat("yyyy-MM-dd hh:mm:ss")
+        self.setDateTimeFormat('yyyy-MM-dd hh:mm:ss')
 
     def clear(self):
         super(TrackingModel, self).clear()
-        self.triangulation_detector.clear()
+        self.triangulationDetector.clear()
 
     #XXX rename id into fid (Feature id)
     def id(self, row):
         return self.item(row, 0).data(self.ID_ROLE)
 
-    def setId(self, row, row_id):
-        self.item(row, 0).setData(row_id, self.ID_ROLE)
+    def setId(self, row, rowId):
+        self.item(row, 0).setData(rowId, self.ID_ROLE)
 
-    def setDateTimeFormat(self, datetime_format):
-        self.datetime_format = datetime_format
+    def setDateTimeFormat(self, datetimeFormat):
+        self.datetimeFormat = datetimeFormat
         #XXX remove check eventually
         if self.rowCount() == 0:
             return
         headers = [self.headerData(col, Qt.Horizontal)
                    for col in range(self.columnCount())]
-        date_index = headers.index('datetime')
-        update_color = False
+        dateIndex = headers.index('datetime')
+        updateColor = False
         for row in range(self.rowCount()):
-            if self.item(row, date_index).parse():
-                update_color = True
-                self.triangulation_detector.update_triangulation(row)
-        if update_color:
-            self.update_color(range(self.rowCount()))
+            if self.item(row, dateIndex).parse():
+                updateColor = True
+                self.triangulationDetector.updateTriangulation(row)
+        if updateColor:
+            self.updateColor(range(self.rowCount()))
 
     def dateTimeFormat(self):
-        return self.datetime_format
+        return self.datetimeFormat
 
     def valid(self, row):
         for col in range(self.columnCount()):
@@ -62,53 +62,53 @@ class TrackingModel(QStandardItemModel):
     def validPosition(self, row):
         headers = [self.headerData(col, Qt.Horizontal)
                    for col in range(self.columnCount())]
-        lat_index = headers.index('lat')
-        lon_index = headers.index('lon')
-        return self.item(row, lat_index).valid() and \
-            self.item(row, lon_index).valid()
+        latIndex = headers.index('lat')
+        lonIndex = headers.index('lon')
+        return self.item(row, latIndex).valid() and \
+            self.item(row, lonIndex).valid()
 
     def validAzimuth(self, row):
         headers = [self.headerData(col, Qt.Horizontal)
                    for col in range(self.columnCount())]
-        azi_index = headers.index('azi')
-        return self.item(row, azi_index).valid()
+        aziIndex = headers.index('azi')
+        return self.item(row, aziIndex).valid()
 
     def validDatetime(self, row):
         headers = [self.headerData(col, Qt.Horizontal)
                    for col in range(self.columnCount())]
-        date_index = headers.index('datetime')
-        return self.item(row, date_index).valid()
+        dateIndex = headers.index('datetime')
+        return self.item(row, dateIndex).valid()
 
     def triangulated(self, row):
-        return self.triangulation_detector.triangulated(row)
+        return self.triangulationDetector.triangulated(row)
 
     def triangulations(self):
-        return self.triangulation_detector.triangulations()
+        return self.triangulationDetector.triangulations()
 
     def selected(self, row):
-        return self.item(row, self.SELECTED_COL_POS).checkState() == Qt.Checked
+        return self.item(row, self.selectedCol_POS).checkState() == Qt.Checked
 
     def setSelected(self, row, state):
-        self.item(row, self.SELECTED_COL_POS).setCheckState(state)
+        self.item(row, self.selectedCol_POS).setCheckState(state)
 
-    def set_brush_row(self, row, brush):
+    def setBrushRow(self, row, brush):
         for col in range(self.columnCount()):
-            current_item = self.item(row, col)
+            currentItem = self.item(row, col)
             # Find the appropriate color
             # This test is there to avoid turning a invalid cell into a
             # valid cell
-            if current_item.valid():
-                current_item.setBackground(brush)
+            if currentItem.valid():
+                currentItem.setBackground(brush)
 
-    def update_color(self, rows):
+    def updateColor(self, rows):
         """Update the color of multiple rows"""
         for row in rows:
             if not self.valid(row):
-                self.set_brush_row(row, self.BRUSH_INVALID_ROW)
+                self.setBrushRow(row, self.BRUSH_INVALID_ROW)
             elif self.triangulated(row):
-                self.set_brush_row(row, self.BRUSH_TRIANGULATED_ROW)
+                self.setBrushRow(row, self.BRUSH_TRIANGULATED_ROW)
             else:
-                self.set_brush_row(row, self.BRUSH_VALID_ROW)
+                self.setBrushRow(row, self.BRUSH_VALID_ROW)
 
     def update(self, item):
         # Test whether the parsing was successful (when it was not
@@ -118,14 +118,14 @@ class TrackingModel(QStandardItemModel):
         # triangulated) and table color
         header = self.headerData(item.column(), Qt.Horizontal)
         if header == 'id' or (item.valid() and header == 'datetime'):
-            self.triangulation_detector.update_triangulation(item.row())
+            self.triangulationDetector.updateTriangulation(item.row())
             # Update the color of current row and possibly other impacted rows
-            self.update_color(range(self.rowCount()))
+            self.updateColor(range(self.rowCount()))
         # Update validity color of local row in case of successful parsing
         elif success:
-            self.update_color([item.row()])
+            self.updateColor([item.row()])
 
-    def load_array_in_model(self, array):
+    def loadArrayInModel(self, array):
         """Load an array in the model/table
 
         Parameters
@@ -133,21 +133,21 @@ class TrackingModel(QStandardItemModel):
         array : list of list of str
             The array containing the data to be displayed. The first line must be the headers of the table
         """
-        is_first_row = True
+        isFirstRow = True
         for row in array:
-            if is_first_row:
-                row.insert(self.SELECTED_COL_POS, '')
+            if isFirstRow:
+                row.insert(self.selectedCol_POS, '')
                 self.setHorizontalHeaderLabels(row)
-                is_first_row = False
+                isFirstRow = False
             else:
-                # XXX Necessarily insert selected_col as first value
+                # XXX Necessarily insert selectedCol as first value
                 items = []
                 checkbox = TrackingItem('')
                 checkbox.setCheckable(True)
                 checkbox.setCheckState(Qt.Checked)
                 items.append(checkbox)
                 for field in row:
-                    content = get_field(field)
+                    content = getField(field)
                     item = TrackingItem(content)
                     items.append(item)
                 self.appendRow(items)
@@ -157,10 +157,10 @@ class TrackingModel(QStandardItemModel):
             # should start at 1 because layer ids start at 1
             # XXX let Qgis returns these ids
             self.setId(row, row + 1)
-            self.triangulation_detector.update_triangulation(row)
-        self.update_color(range(self.rowCount()))
+            self.triangulationDetector.updateTriangulation(row)
+        self.updateColor(range(self.rowCount()))
 
-    def get_row(self, row):
+    def getRow(self, row):
         result = {}
         for col in range(self.columnCount()):
             header = self.headerData(col, Qt.Horizontal)
@@ -168,24 +168,24 @@ class TrackingModel(QStandardItemModel):
         result['id_observation'] = self.id(row)
         return result
 
-    def get_all(self):
+    def getAll(self):
         """Returns all the detailed rows, in id_observation order
 
         Return
         ------
         result : list
-            The array of rows using the get_row format
+            The array of rows using the getRow format
         """
-        nb_rows = self.rowCount()
-        result = [None] * nb_rows
+        nbRows = self.rowCount()
+        result = [None] * nbRows
         for row in range(self.rowCount()):
-            row_info = self.get_row(row)
+            rowInfo = self.getRow(row)
             #XXX - 1 is a fragile operation
-            result_index = self.id(row) - 1
-            result[result_index] = row_info
+            resultIndex = self.id(row) - 1
+            result[resultIndex] = rowInfo
         return result
 
-    def to_array_select(self):
+    def toArraySelect(self):
         """Creates an array of arrays from the content
 
         Return
@@ -196,13 +196,13 @@ class TrackingModel(QStandardItemModel):
         headers = [self.headerData(col, Qt.Horizontal)
                    for col in range(self.columnCount())]
         array = [headers[1:]]
-        date_index = headers.index('datetime')
+        dateIndex = headers.index('datetime')
         for row in range(self.rowCount()):
             if self.selected(row):
                 line = []
                 for col in range(1, self.columnCount()):
                     item = self.item(row, col)
-                    if col == date_index and item.valid():
+                    if col == dateIndex and item.valid():
                         data = item.data(Qt.EditRole)
                         line.append(str(data.toString(self.dateTimeFormat())))
                     else:
@@ -221,15 +221,15 @@ class TrackingItem(QStandardItem):
 
     def setValid(self):
         self.setBackground(self.BRUSH_VALID_CELL)
-        item_font = self.font()
-        item_font.setBold(False)
-        self.setFont(item_font)
+        itemFont = self.font()
+        itemFont.setBold(False)
+        self.setFont(itemFont)
 
     def setInvalid(self):
         self.setBackground(self.BRUSH_INVALID_CELL)
-        item_font = self.font()
-        item_font.setBold(True)
-        self.setFont(item_font)
+        itemFont = self.font()
+        itemFont.setBold(True)
+        self.setFont(itemFont)
 
     def valid(self):
         return self.background() != self.BRUSH_INVALID_CELL
@@ -240,15 +240,15 @@ class TrackingItem(QStandardItem):
             return False
         # Change the current type if not the correct one
         header = self.model().headerData(self.column(), Qt.Horizontal)
-        parse_function = types.get(header)
-        if parse_function == None:
-            parse_function = str
+        parseFunction = types.get(header)
+        if parseFunction == None:
+            parseFunction = str
         data = self.data(Qt.EditRole)
-        if isinstance(data, parse_function):
+        if isinstance(data, parseFunction):
             return False
         try:
-            if parse_function != QDateTime:
-                content = parse_function(data)
+            if parseFunction != QDateTime:
+                content = parseFunction(data)
             else:
                 content = QDateTime.fromString(data,
                                                self.model().dateTimeFormat())
@@ -262,8 +262,8 @@ class TrackingItem(QStandardItem):
         except:
             QgsMessageLog.logMessage('Error reading column %s at line %d.' %
                                      (header, self.row()), 'Radiotrack',
-                                     level=message_log_levels['Warning'])
-            if parse_function == float:
+                                     level = messageLogLevels['Warning'])
+            if parseFunction == float:
                 self.setData(float('inf'), TrackingModel.SORT_ROLE)
             self.setInvalid()
             return False
@@ -271,49 +271,49 @@ class TrackingItem(QStandardItem):
 class TriangulationDetector:
 
     def __init__(self, model):
-        self.rows_for_date = {}
+        self.rowsForDate = {}
         self.model = model
 
     def clear(self):
-        self.rows_for_date = {}
+        self.rowsForDate = {}
 
-    def update_triangulation(self, row):
+    def updateTriangulation(self, row):
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
-        id_sp_index = headers.index('id')
-        date_index = headers.index('datetime')
-        row_id = self.model.id(row)
-        row_id_sp = self.model.item(row, id_sp_index).text()
-        row_date = self.model.item(row, date_index).text()
+        idSpIndex = headers.index('id')
+        dateIndex = headers.index('datetime')
+        rowId = self.model.id(row)
+        rowIdSp = self.model.item(row, idSpIndex).text()
+        rowDate = self.model.item(row, dateIndex).text()
 
         # Remove previous values
-        for emitter_id in self.rows_for_date:
-            for _, row_ids in self.rows_for_date[emitter_id].items():
-                row_ids.discard(row_id)
+        for emitterId in self.rowsForDate:
+            for _, rowIds in self.rowsForDate[emitterId].items():
+                rowIds.discard(rowId)
 
         # Create the set if it doesn't exist
-        if row_id_sp not in self.rows_for_date:
-            self.rows_for_date[row_id_sp] = {}
-        if row_date not in self.rows_for_date[row_id_sp]:
-            self.rows_for_date[row_id_sp][row_date] = set()
+        if rowIdSp not in self.rowsForDate:
+            self.rowsForDate[rowIdSp] = {}
+        if rowDate not in self.rowsForDate[rowIdSp]:
+            self.rowsForDate[rowIdSp][rowDate] = set()
         # Register the row into the dates map
-        self.rows_for_date[row_id_sp][row_date].add(row_id)
+        self.rowsForDate[rowIdSp][rowDate].add(rowId)
 
     def triangulated(self, row):
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
-        id_sp_index = headers.index('id')
-        date_index = headers.index('datetime')
-        row_id_sp = self.model.item(row, id_sp_index).text()
-        row_date = self.model.item(row, date_index).text()
-        return len(self.rows_for_date[row_id_sp][row_date]) >= 2
+        idSpIndex = headers.index('id')
+        dateIndex = headers.index('datetime')
+        rowIdSp = self.model.item(row, idSpIndex).text()
+        rowDate = self.model.item(row, dateIndex).text()
+        return len(self.rowsForDate[rowIdSp][rowDate]) >= 2
 
     def triangulations(self):
         triangs = {}
-        for row_id_sp, id_dict in self.rows_for_date.items():
-            for _, id_date_set in id_dict.items():
-                for id1 in id_date_set:
-                    for id2 in id_date_set:
+        for rowIdSp, idDict in self.rowsForDate.items():
+            for _, idDateSet in idDict.items():
+                for id1 in idDateSet:
+                    for id2 in idDateSet:
                         if id1 < id2:
                             triangs[id1] = id2
         return triangs

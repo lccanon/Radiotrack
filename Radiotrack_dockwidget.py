@@ -34,17 +34,17 @@ from qgis.PyQt.QtWidgets import QWidget, QFileDialog, QHeaderView, QStyle, QStyl
 from .compat import QShortcut
 
 from .compat import QDoubleSpinBox, QDateTimeEdit
-from .compat import QDockWidget, QItemEditorFactory, QStyledItemDelegate, message_log_levels, message_bar_levels
+from .compat import QDockWidget, QItemEditorFactory, QStyledItemDelegate, messageLogLevels, messageBarLevels
 
 from .manageDocumentation import importDoc
 
-from .csv_utils import select_csv_file, load_csv_to_array, save_array_to_csv, select_save_file
+from .csv_utils import selectCsvFile, loadCsvToArray, saveArrayToCsv, selectSaveFile
 from .QgsController import QgsController
-from .TrackingModel import TrackingModel
+from .radiotrack_model import TrackingModel
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
-    os.path.dirname(__file__), 'Radiotrack_dockwidget_base.ui'))
+    os.path.dirname(__file__), 'radiotrack_dockwidget_base.ui'))
 
 
 class DateCoordItemDelegate(QStyledItemDelegate):
@@ -113,13 +113,13 @@ class CheckBoxHeader(QHeaderView):
         if logicalIndex == 0:
             tableView = self.parent()
             n = tableView.model().rowCount()
-            visible_rows = [i for i in range(n) if not tableView.isRowHidden(i)]
+            visibleRows = [i for i in range(n) if not tableView.isRowHidden(i)]
             if self.isOn:
                 state = Qt.Unchecked
             else:
                 state = Qt.Checked
             tableView.model().itemChanged.disconnect()
-            for row in visible_rows:
+            for row in visibleRows:
                 tableView.model().setSelected(row, state)
             tableView.model().itemChanged.connect(self.dock.refresh)
             self.dock.filter()
@@ -132,7 +132,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
 
     """Variables membres"""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent = None):
         """Constructor."""
         super(RadiotrackDockWidget, self).__init__(parent)
         self.setupUi(self)
@@ -151,24 +151,24 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         checkboxHeader.setMinimumSectionSize(0)
         self.tableView.setHorizontalHeader(checkboxHeader)
         """Navigation in QTableWidget shortcut"""
-        QShortcut(QKeySequence("Ctrl+PgDown"), self).activated.connect(self.navigateRightTab)
-        QShortcut(QKeySequence("Ctrl+PgUp"), self).activated.connect(self.navigateLeftTab)
+        QShortcut(QKeySequence('Ctrl+PgDown'), self).activated.connect(self.navigateRightTab)
+        QShortcut(QKeySequence('Ctrl+PgUp'), self).activated.connect(self.navigateLeftTab)
         """Import and export csv project actions"""
         self.importButton.clicked.connect(self.importFile)
-        self.importButton.setShortcut("Ctrl+Alt+I")
+        self.importButton.setShortcut('Ctrl+Alt+I')
         """Save actions"""
-        self.saveAsButton.clicked.connect(self.save_as)
-        self.saveAsButton.setShortcut("Ctrl+Alt+X")
+        self.saveAsButton.clicked.connect(self.saveAs)
+        self.saveAsButton.setShortcut('Ctrl+Alt+X')
         """Empty the table and the model, and forget the CSV file"""
         self.clearButton.clicked.connect(self.clear)
-        self.clearButton.setShortcut("Ctrl+Alt+C")
+        self.clearButton.setShortcut('Ctrl+Alt+C')
         """Filter actions"""
-        self.idFilter.addItem("All")
-        self.idFilter.currentTextChanged.connect(self.filter_update)
+        self.idFilter.addItem('All')
+        self.idFilter.currentTextChanged.connect(self.filterUpdate)
         self.dateTimeStart.dateTimeChanged.connect(self.filter)
         self.dateTimeEnd.dateTimeChanged.connect(self.filter)
-        self.dateTimeFixedInterval.clicked.connect(self.link_datetime_edit)
-        self.dateTimeAdjust.clicked.connect(self.adjust_datetime_filter)
+        self.dateTimeFixedInterval.clicked.connect(self.linkDatetimeEdit)
+        self.dateTimeAdjust.clicked.connect(self.adjustDatetimeFilter)
         self.position.stateChanged.connect(self.filter)
         self.azimuth.stateChanged.connect(self.filter)
         self.datetime.stateChanged.connect(self.filter)
@@ -179,19 +179,19 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         palette.setBrush(QPalette.Button, self.model.BRUSH_TRIANGULATED_ROW)
         self.triangulation.setPalette(palette)
         self.selected.stateChanged.connect(self.filter)
-        self.resetFilterButton.clicked.connect(self.reset_filter)
+        self.resetFilterButton.clicked.connect(self.resetFilter)
         self.tableView.horizontalHeader().sortIndicatorChanged.connect(self.filter)
         # Put all values to default ones (in particular for the date)
-        self.reset_filter()
+        self.resetFilter()
         """Date format selection"""
         self.dateComboBox.currentTextChanged.connect(self.dateTimeStart.setDisplayFormat)
         self.dateComboBox.currentTextChanged.connect(self.dateTimeEnd.setDisplayFormat)
         self.dateComboBox.currentTextChanged.connect(self.setDateTimeFormat)
-        self.dateComboBox.addItem("yyyy-MM-dd hh:mm:ss")
-        self.dateComboBox.addItem("d/M/yyyy hh:mm:ss")
-        self.dateComboBox.addItem("M/d/yyyy hh:mm:ss")
-        self.dateComboBox.addItem("hh:mm:ss d/M/yyyy")
-        self.dateComboBox.addItem("hh:mm:ss M/d/yyyy")
+        self.dateComboBox.addItem('yyyy-MM-dd hh:mm:ss')
+        self.dateComboBox.addItem('d/M/yyyy hh:mm:ss')
+        self.dateComboBox.addItem('M/d/yyyy hh:mm:ss')
+        self.dateComboBox.addItem('hh:mm:ss d/M/yyyy')
+        self.dateComboBox.addItem('hh:mm:ss M/d/yyyy')
         """Set segment length"""
         self.segmentLength.valueChanged.connect(self.qgs.setSegmentLength)
         """Set CRS"""
@@ -224,20 +224,20 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Add geometry if required
         header = self.model.headerData(item.column(), Qt.Horizontal)
         if header == 'lon' or header == 'lat' or header == 'azi':
-            row_info = self.model.get_row(item.row())
-            self.qgs.updateRowLinePoint(row_info)
+            rowInfo = self.model.getRow(item.row())
+            self.qgs.updateRowLinePoint(rowInfo)
         elif header == 'id':
-            row_info = self.model.get_row(item.row())
-            self.qgs.setId([row_info])
+            rowInfo = self.model.getRow(item.row())
+            self.qgs.setId([rowInfo])
 
         # Re-apply filter and update filter id list
         if header == 'id':
-            self.filter_update()
+            self.filterUpdate()
         else:
             self.filter()
 
         QgsMessageLog.logMessage('Project refreshed', 'Radiotrack',
-                                 level = message_log_levels["Info"])
+                                 level = messageLogLevels['Info'])
 
     def navigateRightTab(self):
         tb = self.tabWidget
@@ -256,32 +256,32 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         used, for disambiguation with the filename.
         """
         if filename is None:
-            filename = select_csv_file()
+            filename = selectCsvFile()
             if filename is None:
                 return
         # Clear only when new file is selected
         self.clear()
         # Load model
-        csv_array = load_csv_to_array(filename)
-        if csv_array is None:
+        csvArray = loadCsvToArray(filename)
+        if csvArray is None:
             return
         self.model.itemChanged.disconnect()
-        self.model.load_array_in_model(csv_array)
+        self.model.loadArrayInModel(csvArray)
         self.model.itemChanged.connect(self.refresh)
         # Update canvas and create colors (must be done before
         # initializing the filters)
         layerSuffix = ' ' + os.path.splitext(os.path.basename(filename))[0] + '__radiotrack__'
         self.qgs.setLayerSuffix(layerSuffix)
         triangs = self.model.triangulations()
-        self.qgs.createLayers(self.model.get_all(), triangs)
+        self.qgs.createLayers(self.model.getAll(), triangs)
         # Update main and filter tab views
         self.currentProjectText.setText(filename)
-        self.update_view()
-        self.reset_filter()
+        self.updateView()
+        self.resetFilter()
         # Initial population of ids with available ones in data
-        self.filter_update()
+        self.filterUpdate()
 
-    def update_view(self):
+    def updateView(self):
         """Configure the table view and actions
 
         Requires the colors of the individuals.
@@ -295,23 +295,23 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
         QgsMessageLog.logMessage('Table successfully created', 'Radiotrack',
-                                 level = message_log_levels["Info"])
+                                 level = messageLogLevels['Info'])
 
-    def save_as(self):
+    def saveAs(self):
         """Save selected rows
 
         Display a dialog to ask where to save, and save the current
         content of the table in the selected file.
         """
-        filename = select_save_file()
+        filename = selectSaveFile()
         if filename != '':
             try:
-                array = self.model.to_array_select()
+                array = self.model.toArraySelect()
             except:
-                QgsMessageLog.logMessage('Unable to serialize the table.', 'Radiotrack', level=message_log_levels["Critical"])
+                QgsMessageLog.logMessage('Unable to serialize the table.', 'Radiotrack', level=messageLogLevels['Critical'])
                 iface.messageBar().pushWarning('Warning Radiotrack', 'Unable to serialize the table.')
             else:
-                if save_array_to_csv(array, filename):
+                if saveArrayToCsv(array, filename):
                     self.currentProjectText.setText(filename)
                     iface.messageBar().pushInfo(u'Radiotrack: ', u'CSV file saved.')
 
@@ -320,8 +320,8 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.model.clear()
         self.currentProjectText.clear()
         # Clear filter tab view
-        self.clear_filter()
-        QgsMessageLog.logMessage('Cleared layers and table', 'Radiotrack', level=message_log_levels["Info"])
+        self.clearFilter()
+        QgsMessageLog.logMessage('Cleared layers and table', 'Radiotrack', level = messageLogLevels['Info'])
 
     def filter(self):
         #XXX remove check eventually
@@ -329,15 +329,15 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             return
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
-        col_id = headers.index('id')
-        col_date = headers.index('datetime')
-        rows_add = []
-        rows_del = []
+        colId = headers.index('id')
+        colDate = headers.index('datetime')
+        rowsAdd = []
+        rowsDel = []
         for row in range(self.model.rowCount()):
-            date = self.model.item(row, col_date).data(Qt.EditRole)
-            filter_id = self.idFilter.currentText()
-            if (filter_id == "All" or
-                self.model.item(row, col_id).text() == filter_id) and \
+            date = self.model.item(row, colDate).data(Qt.EditRole)
+            filterId = self.idFilter.currentText()
+            if (filterId == 'All' or
+                self.model.item(row, colId).text() == filterId) and \
                 (isinstance(date, str) or
                  (date >= self.dateTimeStart.dateTime() and
                   date <= self.dateTimeEnd.dateTime())) and \
@@ -351,18 +351,18 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                       self.model.triangulated(row)) and \
                       (not self.selected.isChecked() or self.model.selected(row)):
                 if self.tableView.isRowHidden(row):
-                    rows_add.append(self.model.id(row))
+                    rowsAdd.append(self.model.id(row))
                     self.tableView.setRowHidden(row, False)
             else:
                 if not self.tableView.isRowHidden(row):
-                    rows_del.append(self.model.id(row))
+                    rowsDel.append(self.model.id(row))
                     self.tableView.setRowHidden(row, True)
-        self.qgs.setFilter(rows_add, False)
-        self.qgs.setFilter(rows_del, True)
+        self.qgs.setFilter(rowsAdd, False)
+        self.qgs.setFilter(rowsDel, True)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
 
-    def update_ids(self):
+    def updateIds(self):
         #XXX remove check eventually
         if self.model.rowCount() == 0:
             return
@@ -370,19 +370,19 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # Find id column
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
-        col_id = headers.index('id')
+        colId = headers.index('id')
         # Get ids in data
         ids = set()
         for row in range(self.model.rowCount()):
-            ids.add(self.model.item(row, col_id).text())
+            ids.add(self.model.item(row, colId).text())
         # Add current filtered ids even if absent from data
-        curr_index = self.idFilter.currentIndex()
-        if curr_index != 0:
-            filter_id = self.idFilter.currentText()
-            ids.add(filter_id)
+        currIndex = self.idFilter.currentIndex()
+        if currIndex != 0:
+            filterId = self.idFilter.currentText()
+            ids.add(filterId)
             self.idFilter.currentTextChanged.disconnect()
         # Replace all combo boxes
-        self.clear_filter()
+        self.clearFilter()
         ids = sorted(ids)
         self.idFilter.addItems(ids)
         # Set color for each item in the ids combo box
@@ -391,26 +391,26 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             id = self.idFilter.itemText(i)
             self.idFilter.setItemData(i, colors[id], Qt.BackgroundColorRole)
         palette = self.idFilter.palette()
-        if curr_index == 0:
+        if currIndex == 0:
             palette.setColor(QPalette.Button, QColor(Qt.white))
         else:
-            palette.setColor(QPalette.Button, colors[filter_id])
+            palette.setColor(QPalette.Button, colors[filterId])
             # Put combo index back to initial value
-            self.idFilter.setCurrentIndex(ids.index(filter_id) + 1)
-            self.idFilter.currentTextChanged.connect(self.filter_update)
+            self.idFilter.setCurrentIndex(ids.index(filterId) + 1)
+            self.idFilter.currentTextChanged.connect(self.filterUpdate)
         self.idFilter.setPalette(palette)
 
-    def clear_filter(self):
+    def clearFilter(self):
         self.idFilter.setCurrentIndex(0)
         for i in range(1, self.idFilter.count()):
             self.idFilter.removeItem(1)
 
     # Filter values and update list of ids
-    def filter_update(self):
+    def filterUpdate(self):
         self.filter()
-        self.update_ids()
+        self.updateIds()
 
-    def reset_filter(self):
+    def resetFilter(self):
         self.idFilter.setCurrentIndex(0)
         self.dateTimeStart.setDateTime(self.dateTimeStart.minimumDateTime())
         self.dateTimeEnd.setDateTime(QDateTime.currentDateTime())
@@ -420,7 +420,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.triangulation.setChecked(False)
         self.selected.setChecked(False)
 
-    def link_datetime_edit(self):
+    def linkDatetimeEdit(self):
         """Link DateTimeEdit"""
         if self.dateTimeFixedInterval.isChecked():
             self.dateTimeStart.setSyncDateTime(self.dateTimeEnd)
@@ -429,31 +429,31 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             self.dateTimeStart.setSyncDateTime(None)
             self.dateTimeEnd.setSyncDateTime(None)
 
-    def adjust_datetime_filter(self):
+    def adjustDatetimeFilter(self):
         #XXX remove check eventually
         if self.model.rowCount() == 0:
             return
         headers = [self.model.headerData(col, Qt.Horizontal)
                    for col in range(self.model.columnCount())]
-        col_date = headers.index('datetime')
-        smallest_date = None
-        biggest_date = None
+        colDate = headers.index('datetime')
+        smallestDate = None
+        biggestDate = None
         for row in range(self.model.rowCount()):
-            date = self.model.item(row, col_date).data(Qt.EditRole)
-            if isinstance(date, QDateTime) and (smallest_date is None or
-                                              smallest_date > date):
-                smallest_date = date
-            if isinstance(date, QDateTime) and (biggest_date is None or
-                                              biggest_date < date):
-                biggest_date = date
-        if smallest_date is not None:
-            self.dateTimeStart.setDateTime(smallest_date)
-        if biggest_date is not None:
-            self.dateTimeEnd.setDateTime(biggest_date)
+            date = self.model.item(row, colDate).data(Qt.EditRole)
+            if isinstance(date, QDateTime) and (smallestDate is None or
+                                              smallestDate > date):
+                smallestDate = date
+            if isinstance(date, QDateTime) and (biggestDate is None or
+                                              biggestDate < date):
+                biggestDate = date
+        if smallestDate is not None:
+            self.dateTimeStart.setDateTime(smallestDate)
+        if biggestDate is not None:
+            self.dateTimeEnd.setDateTime(biggestDate)
 
-    def setDateTimeFormat(self, datetime_format):
+    def setDateTimeFormat(self, datetimeFormat):
         self.model.itemChanged.disconnect()
-        self.model.setDateTimeFormat(datetime_format)
+        self.model.setDateTimeFormat(datetimeFormat)
         self.model.itemChanged.connect(self.refresh)
 
     def intersectTriangulation(self):
@@ -463,6 +463,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
 
     def importDemo(self, checked):
         THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-        my_file = os.path.join(THIS_FOLDER, "./Documentation/example.csv")
+        myFile = os.path.join(THIS_FOLDER, './Documentation/example.csv')
         """checked is passed on because of argument ambiguity"""
-        self.importFile(checked, filename = my_file)
+        self.importFile(checked, filename = myFile)

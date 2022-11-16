@@ -20,19 +20,19 @@ from qgis.gui import QgsMessageBar
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
 
-def write_csv(csv_file_name, array):
+def writeCsv(csvFileName, array):
     try:
         if PY2:
-            with open(csv_file_name, 'w') as output_file:
+            with open(csvFileName, 'w') as outpulFile:
                 for row in array:
                     for cell in row:
                         if cell.find(',') != -1:
                             cell = '"' + cell + '"'
-                    line = (u','.join(row) + u'\n').encode("utf-8")
-                    output_file.write(line)
+                    line = (u','.join(row) + u'\n').encode('utf-8')
+                    outpulFile.write(line)
         else:
-            with io.open(csv_file_name, 'w', newline='') as output_file:
-                writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            with io.open(csvFileName, 'w', newline = '') as outpulFile:
+                writer = csv.writer(outpulFile, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_MINIMAL)
 
                 writer.writerows(array)
 
@@ -41,7 +41,7 @@ def write_csv(csv_file_name, array):
         return False
 
 
-def get_field(field):
+def getField(field):
     if PY2:
         return field.decode(sys.getfilesystemencoding())
     else:
@@ -49,15 +49,15 @@ def get_field(field):
 
 # QGis and Qt versions (2 to 3 and 4 to 5)
 
-def get_filename_qdialog(qdialog_return):
+def getFilenameQdialog(qdialogReturn):
     if QGis.QGIS_VERSION_INT >= 30000:
         # Qt 5
-        return qdialog_return[0]
+        return qdialogReturn[0]
     else:
         # Qt 4
-        return qdialog_return
+        return qdialogReturn
 
-if hasattr(core, "QGis"):
+if hasattr(core, 'QGis'):
     from qgis.core import QGis
 else:
     from qgis.core import Qgis as QGis
@@ -65,22 +65,22 @@ else:
 if QGis.QGIS_VERSION_INT >= 30000:
     from qgis.PyQt.QtWidgets import QAction, QDockWidget, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QCheckBox, QDateTimeEdit
 
-    message_log_levels = {
-        "Info": QGis.Info,
-        "Warning": QGis.Warning,
-        "Critical": QGis.Critical,
+    messageLogLevels = {
+        'Info': QGis.Info,
+        'Warning': QGis.Warning,
+        'Critical': QGis.Critical,
     }
-    message_bar_levels = message_log_levels
+    messageBarLevels = messageLogLevels
 else:
     from qgis.PyQt.QtGui import QAction, QDockWidget, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QCheckBox, QDateTimeEdit
 
-    message_log_levels = {
-        "Info": QgsMessageLog.INFO,
-        "Warning": QgsMessageLog.WARNING,
-        "Critical": QgsMessageLog.CRITICAL,
+    messageLogLevels = {
+        'Info': QgsMessageLog.INFO,
+        'Warning': QgsMessageLog.WARNING,
+        'Critical': QgsMessageLog.CRITICAL,
     }
-    message_bar_levels = {
-        "Info": QgsMessageBar.INFO,
-        "Warning": QgsMessageBar.WARNING,
-        "Critical": QgsMessageBar.CRITICAL,
+    messageBarLevels = {
+        'Info': QgsMessageBar.INFO,
+        'Warning': QgsMessageBar.WARNING,
+        'Critical': QgsMessageBar.CRITICAL,
     }

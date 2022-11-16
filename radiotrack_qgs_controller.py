@@ -15,9 +15,9 @@ from .csv_utils import labels
 
 class QgsController:
 
-    LINE_LAYER_BASE_NAME = "lines"
-    POINT_LAYER_BASE_NAME = "points"
-    INTER_LAYER_BASE_NAME = "intersections"
+    LINE_LAYER_BASE_NAME = 'lines'
+    POINT_LAYER_BASE_NAME = 'points'
+    INTER_LAYER_BASE_NAME = 'intersections'
 
     def __init__(self):
         # Store references to the layers
@@ -26,7 +26,7 @@ class QgsController:
         self.layerInter = None
         # Init geographical settings
         self.setEPSG4326()
-        self.layerSuffix = ""
+        self.layerSuffix = ''
         # Autozoom and properties
         self.currExtent = None
         self.segmentLength = 1
@@ -53,9 +53,9 @@ class QgsController:
 
         # Create specific renderer for coloring depending on id
         self.idRendPoint = QgsCategorizedSymbolRenderer()
-        self.idRendPoint.setClassAttribute("id")
+        self.idRendPoint.setClassAttribute('id')
         self.idRendInter = QgsCategorizedSymbolRenderer()
-        self.idRendInter.setClassAttribute("id")
+        self.idRendInter.setClassAttribute('id')
 
         # Draw the available points on their layers
         self.drawLines(array)
@@ -161,11 +161,11 @@ class QgsController:
         # Specify the geometry type
         layer.setCrs(self.CRS)
         # Avoid warning when closing project
-        layer.setCustomProperty("skipMemoryLayersCheck", 1)
+        layer.setCustomProperty('skipMemoryLayersCheck', 1)
         with edit(layer):
-            layer.addAttribute(QgsField("id", QVariant.String))
-            layer.addAttribute(QgsField("filter", QVariant.Int))
-            layer.addAttribute(QgsField("triangulation", QVariant.Int))
+            layer.addAttribute(QgsField('id', QVariant.String))
+            layer.addAttribute(QgsField('filter', QVariant.Int))
+            layer.addAttribute(QgsField('triangulation', QVariant.Int))
         self.initFilter(layer)
         # Setting the filter must be called after initializing the
         # filter attributes
@@ -257,7 +257,7 @@ class QgsController:
                 lighter = max(0, 256 - sum(rgb)) // 3
                 rgb = tuple(col + lighter for col in rgb)
                 symbol = QgsMarkerSymbol.createSimple({'size' : str(size),
-                                                       'color' : "%d,%d,%d" % rgb})
+                                                       'color' : '%d,%d,%d' % rgb})
                 cat = QgsRendererCategory(id, symbol, id)
                 idRend.addCategory(cat)
                 ids.add(id)

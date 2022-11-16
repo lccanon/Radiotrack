@@ -31,5 +31,5 @@ def importDoc(qTextDoc):
     docFile = './Documentation/README.html'
     qTextDoc.clear()
     THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-    my_file = os.path.join(THIS_FOLDER, docFile)
-    qTextDoc.setSource(QtCore.QUrl.fromLocalFile(my_file))
+    myFile = os.path.join(THIS_FOLDER, docFile)
+    qTextDoc.setSource(QtCore.QUrl.fromLocalFile(myFile))

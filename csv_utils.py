@@ -5,20 +5,20 @@ from qgis.utils import iface
 from qgis.PyQt.QtCore import QDateTime
 from qgis.PyQt.QtWidgets import QFileDialog
 
-from .compat import message_log_levels, message_bar_levels, get_filename_qdialog, write_csv
+from .compat import messageLogLevels, messageBarLevels, getFilenameQdialog, writeCsv
 
-labels = {"ID": "id", "X": "lon", "Y": "lat", "AZIMUT": "azi"}
+labels = {'ID': 'id', 'X': 'lon', 'Y': 'lat', 'AZIMUT': 'azi'}
 
 types = {
-    "datetime": QDateTime,
-    "lat": float,
-    "lon": float,
-    "azi": float,
+    'datetime': QDateTime,
+    'lat': float,
+    'lon': float,
+    'azi': float,
 }
 
-table_headers = ["id", "datetime", "lat", "lon", "azi"]
+tableHeaders = ['id', 'datetime', 'lat', 'lon', 'azi']
 
-def select_csv_file():
+def selectCsvFile():
     """Displays a dialog allowing the user to select a file
 
     Returns
@@ -27,16 +27,16 @@ def select_csv_file():
         The path of the selected csv file. Empty if an error occurred, or if nothing was selected
     """
     dialog = QFileDialog()
-    dialog.setNameFilter("Text files (*.csv)")
+    dialog.setNameFilter('Text files (*.csv)')
     if dialog.exec_():
         filenames = dialog.selectedFiles()
-        QgsMessageLog.logMessage('File successfully selected', 'Radiotrack', level=message_log_levels["Info"])
+        QgsMessageLog.logMessage('File successfully selected', 'Radiotrack', level = messageLogLevels['Info'])
         return filenames[0]
     else:
-        QgsMessageLog.logMessage('No file selected', 'Radiotrack', level=message_log_levels["Info"])
+        QgsMessageLog.logMessage('No file selected', 'Radiotrack', level = messageLogLevels['Info'])
         return None
 
-def validate_headers(headers):
+def validateHeaders(headers):
     """Validate the headers. Returns True if the headers are valid
 
     Parameters
@@ -52,7 +52,7 @@ def validate_headers(headers):
 
     errors = []
     try:
-        for index, header in enumerate(table_headers):
+        for index, header in enumerate(tableHeaders):
             if header != headers[index]:
                 errors.append('Field ' + headers[index] + ' should be ' + header)
     except:
@@ -61,11 +61,11 @@ def validate_headers(headers):
     if len(errors) > 0:
         iface.messageBar().pushCritical('Error Radiotrack', 'Header structure error. Check the log.')
         for err in errors:
-            QgsMessageLog.logMessage(err, 'Radiotrack', level=message_log_levels["Critical"])
+            QgsMessageLog.logMessage(err, 'Radiotrack', level = messageLogLevels['Critical'])
 
     return len(errors) == 0
 
-def load_csv_to_array(filename):
+def loadCsvToArray(filename):
     """Load the content of the given csv file into an array
 
     The resulting array will contain each line of the csv file
@@ -81,25 +81,25 @@ def load_csv_to_array(filename):
     array : list of list of str
         The array with all the csv file inside
     """
-    csv_array = []
-    with open(filename, "rt") as fileInput:
-        is_first_line = True
+    csvArray = []
+    with open(filename, 'rt') as fileInput:
+        isFirstLine = True
         for row in csv.reader(fileInput):
-            if is_first_line:
-                is_first_line = False
+            if isFirstLine:
+                isFirstLine = False
                 # What we get here are the headers
                 # We can check their validity first
-                if not validate_headers(row):
+                if not validateHeaders(row):
                     return None
-            csv_array.append(row)
+            csvArray.append(row)
     # In case of empty file
-    if is_first_line:
-        QgsMessageLog.logMessage('Unable to load the file: empty file', 'Radiotrack', level=message_log_levels['Critical'])
+    if isFirstLine:
+        QgsMessageLog.logMessage('Unable to load the file: empty file', 'Radiotrack', level = messageLogLevels['Critical'])
         iface.messageBar().pushCritical('Warning Radiotrack', 'Unable to load the file: empty file.')
         return None
-    return csv_array
+    return csvArray
 
-def save_array_to_csv(array, csv_file_name):
+def saveArrayToCsv(array, csvFileName):
     """Save an array into a csv file.
 
     The array must have the header (name of the columns) in the first row.
@@ -113,7 +113,7 @@ def save_array_to_csv(array, csv_file_name):
     ----------
     array : list of list of str
         The array to save in a csv file
-    csv_file_name : str
+    csvFileName : str
         The path of the csv file. The file will be created if it doesn't exist. If it exists, it will be replaced
 
     Return
@@ -121,17 +121,17 @@ def save_array_to_csv(array, csv_file_name):
     no_error : bool
         True if the writing succeed
     """
-    if not write_csv(csv_file_name, array):
-        if os.path.exists(csv_file_name):
-            os.remove(csv_file_name)
+    if not writeCsv(csvFileName, array):
+        if os.path.exists(csvFileName):
+            os.remove(csvFileName)
 
-            QgsMessageLog.logMessage('Unable to write the csv file', 'Radiotrack', level=message_log_levels["Critical"])
+            QgsMessageLog.logMessage('Unable to write the csv file', 'Radiotrack', level = messageLogLevels['Critical'])
             iface.messageBar().pushCritical('Error Radiotrack', 'Unable to write the csv file.')
         return False
     else:
         return True
 
-def select_save_file():
+def selectSaveFile():
     """Display a selection dialog to choose the save file
 
     Return
@@ -140,7 +140,7 @@ def select_save_file():
         The path of the selected file
     """
     try:
-        filename = get_filename_qdialog(QFileDialog.getSaveFileName(None, "Select output file ", "", 'CSV files (*.csv)'))
+        filename = getFilenameQdialog(QFileDialog.getSaveFileName(None, 'Select output file ', '', 'CSV files (*.csv)'))
 
         if filename != '':
             if os.path.splitext(filename)[-1].lower() != '.csv':
