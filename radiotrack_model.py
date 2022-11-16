@@ -1,9 +1,9 @@
 from qgis.core import QgsMessageLog
+from qgis.core import Qgis as QGis
 from qgis.PyQt.QtCore import Qt, QDateTime
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor, QFont
 
 from .csv_utils import types
-from .compat import messageLogLevels, getField
 
 class TrackingModel(QStandardItemModel):
 
@@ -147,7 +147,7 @@ class TrackingModel(QStandardItemModel):
                 checkbox.setCheckState(Qt.Checked)
                 items.append(checkbox)
                 for field in row:
-                    content = getField(field)
+                    content = field
                     item = TrackingItem(content)
                     items.append(item)
                 self.appendRow(items)
@@ -262,7 +262,7 @@ class TrackingItem(QStandardItem):
         except:
             QgsMessageLog.logMessage('Error reading column %s at line %d.' %
                                      (header, self.row()), 'Radiotrack',
-                                     level = messageLogLevels['Warning'])
+                                     level = QGis.Warning)
             if parseFunction == float:
                 self.setData(float('inf'), TrackingModel.SORT_ROLE)
             self.setInvalid()

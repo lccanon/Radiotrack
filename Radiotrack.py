@@ -22,7 +22,8 @@
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
-from .compat import QAction
+from qgis.PyQt.QtWidgets import QAction
+from qgis.core import Qgis as QGis
 
 # Initialize Qt resources from file resources.py
 from . import resources
@@ -31,7 +32,7 @@ from . import resources
 from .radiotrack_dockwidget import RadiotrackDockWidget
 import os.path
 
-class Radiotrack:
+class radiotrack:
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):

@@ -1,8 +1,9 @@
-from .compat import QDateTimeEdit
+from qgis.PyQt.QtWidgets import QDateTimeEdit
+from qgis.core import Qgis as QGis
 
-class RollingDateTimeEdit(QDateTimeEdit):
+class rolling_datetime_edit(QDateTimeEdit):
     def __init__(self, parent):
-        super(RollingDateTimeEdit, self).__init__(parent)
+        super(rolling_datetime_edit, self).__init__(parent)
         self.syncDateTime = None
 
     def setSyncDateTime(self, syncDateTime):

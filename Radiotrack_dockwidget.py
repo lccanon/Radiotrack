@@ -26,20 +26,18 @@ from qgis.core import QgsMessageLog
 from qgis.utils import iface
 from qgis.gui import QgsMessageBar
 import qgis
+from qgis.core import Qgis as QGis
 
 from qgis.PyQt.QtGui import QKeySequence, QPalette, QColor
 from qgis.PyQt.QtCore import Qt, pyqtSignal, QVariant, QDateTime, QRect
 from qgis.PyQt.QtWidgets import QWidget, QFileDialog, QHeaderView, QStyle, QStyleOptionButton
 
-from .compat import QShortcut
+from qgis.PyQt.QtWidgets import QDockWidget, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QDateTimeEdit
 
-from .compat import QDoubleSpinBox, QDateTimeEdit
-from .compat import QDockWidget, QItemEditorFactory, QStyledItemDelegate, messageLogLevels, messageBarLevels
-
-from .manageDocumentation import importDoc
+from .manage_documentation import importDoc
 
 from .csv_utils import selectCsvFile, loadCsvToArray, saveArrayToCsv, selectSaveFile
-from .QgsController import QgsController
+from .radiotrack_qgs_controller import QgsController
 from .radiotrack_model import TrackingModel
 
 
@@ -237,7 +235,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             self.filter()
 
         QgsMessageLog.logMessage('Project refreshed', 'Radiotrack',
-                                 level = messageLogLevels['Info'])
+                                 level = QGis.Info)
 
     def navigateRightTab(self):
         tb = self.tabWidget
@@ -295,7 +293,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
         QgsMessageLog.logMessage('Table successfully created', 'Radiotrack',
-                                 level = messageLogLevels['Info'])
+                                 level = QGis.Info)
 
     def saveAs(self):
         """Save selected rows
@@ -308,7 +306,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             try:
                 array = self.model.toArraySelect()
             except:
-                QgsMessageLog.logMessage('Unable to serialize the table.', 'Radiotrack', level=messageLogLevels['Critical'])
+                QgsMessageLog.logMessage('Unable to serialize the table.', 'Radiotrack', level=QGis.Critical)
                 iface.messageBar().pushWarning('Warning Radiotrack', 'Unable to serialize the table.')
             else:
                 if saveArrayToCsv(array, filename):
@@ -321,7 +319,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.currentProjectText.clear()
         # Clear filter tab view
         self.clearFilter()
-        QgsMessageLog.logMessage('Cleared layers and table', 'Radiotrack', level = messageLogLevels['Info'])
+        QgsMessageLog.logMessage('Cleared layers and table', 'Radiotrack', level = QGis.Info)
 
     def filter(self):
         #XXX remove check eventually

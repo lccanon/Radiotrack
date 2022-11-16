@@ -5,8 +5,6 @@ from qgis.utils import iface
 from qgis.PyQt.QtCore import QDateTime
 from qgis.PyQt.QtWidgets import QFileDialog
 
-from .compat import messageLogLevels, messageBarLevels, getFilenameQdialog, writeCsv
-
 labels = {'ID': 'id', 'X': 'lon', 'Y': 'lat', 'AZIMUT': 'azi'}
 
 types = {
@@ -17,6 +15,17 @@ types = {
 }
 
 tableHeaders = ['id', 'datetime', 'lat', 'lon', 'azi']
+
+def writeCsv(csvFileName, array):
+    try:
+        with io.open(csvFileName, 'w', newline = '') as outpulFile:
+            writer = csv.writer(outpulFile, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_MINIMAL)
+
+            writer.writerows(array)
+
+        return True
+    except:
+        return False
 
 def selectCsvFile():
     """Displays a dialog allowing the user to select a file
@@ -30,10 +39,10 @@ def selectCsvFile():
     dialog.setNameFilter('Text files (*.csv)')
     if dialog.exec_():
         filenames = dialog.selectedFiles()
-        QgsMessageLog.logMessage('File successfully selected', 'Radiotrack', level = messageLogLevels['Info'])
+        QgsMessageLog.logMessage('File successfully selected', 'Radiotrack', level = QGis.Info)
         return filenames[0]
     else:
-        QgsMessageLog.logMessage('No file selected', 'Radiotrack', level = messageLogLevels['Info'])
+        QgsMessageLog.logMessage('No file selected', 'Radiotrack', level = QGis.Info)
         return None
 
 def validateHeaders(headers):
@@ -61,7 +70,7 @@ def validateHeaders(headers):
     if len(errors) > 0:
         iface.messageBar().pushCritical('Error Radiotrack', 'Header structure error. Check the log.')
         for err in errors:
-            QgsMessageLog.logMessage(err, 'Radiotrack', level = messageLogLevels['Critical'])
+            QgsMessageLog.logMessage(err, 'Radiotrack', level = QGis.Critical)
 
     return len(errors) == 0
 
@@ -94,7 +103,7 @@ def loadCsvToArray(filename):
             csvArray.append(row)
     # In case of empty file
     if isFirstLine:
-        QgsMessageLog.logMessage('Unable to load the file: empty file', 'Radiotrack', level = messageLogLevels['Critical'])
+        QgsMessageLog.logMessage('Unable to load the file: empty file', 'Radiotrack', level = QGis.Critical)
         iface.messageBar().pushCritical('Warning Radiotrack', 'Unable to load the file: empty file.')
         return None
     return csvArray
@@ -125,7 +134,7 @@ def saveArrayToCsv(array, csvFileName):
         if os.path.exists(csvFileName):
             os.remove(csvFileName)
 
-            QgsMessageLog.logMessage('Unable to write the csv file', 'Radiotrack', level = messageLogLevels['Critical'])
+            QgsMessageLog.logMessage('Unable to write the csv file', 'Radiotrack', level = QGis.Critical)
             iface.messageBar().pushCritical('Error Radiotrack', 'Unable to write the csv file.')
         return False
     else:
@@ -140,7 +149,7 @@ def selectSaveFile():
         The path of the selected file
     """
     try:
-        filename = getFilenameQdialog(QFileDialog.getSaveFileName(None, 'Select output file ', '', 'CSV files (*.csv)'))
+        filename = QFileDialog.getSaveFileName(None, 'Select output file ', '', 'CSV files (*.csv)')[0]
 
         if filename != '':
             if os.path.splitext(filename)[-1].lower() != '.csv':

@@ -10,6 +10,7 @@ from qgis.core import QgsCoordinateTransform, QgsCoordinateReferenceSystem
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererCategory, QgsMarkerSymbol
 from .algorithmNewPoint import dst
 from qgis.PyQt.QtCore import QVariant
+from qgis.core import Qgis as QGis
 
 from .csv_utils import labels
 

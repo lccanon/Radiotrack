@@ -29,5 +29,5 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgisInterface
     """
     #
-    from .radiotrack import Radiotrack
+    from .radiotrack import radiotrack
     return radiotrack(iface)

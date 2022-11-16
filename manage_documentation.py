@@ -20,10 +20,10 @@
  ***************************************************************************/
 """
 
-import io
 import os
 
-from qgis.PyQt import QtCore, QtGui, uic, QtWidgets
+from qgis.PyQt import QtCore
+from qgis.core import Qgis as QGis
 
 def importDoc(qTextDoc):
     qTextDoc.setOpenLinks(True)

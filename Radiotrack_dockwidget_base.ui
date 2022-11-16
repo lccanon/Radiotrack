@@ -164,7 +164,7 @@ Any previously loaded data will be replaced. (Ctrl+Alt+I)</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="RollingDateTimeEdit" name="dateTimeStart">
+                  <widget class="rolling_datetime_edit" name="dateTimeStart">
                    <property name="toolTip">
                     <string>Use the up and down arrows in this field to change both fields at once.</string>
                    </property>
@@ -188,7 +188,7 @@ Any previously loaded data will be replaced. (Ctrl+Alt+I)</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="RollingDateTimeEdit" name="dateTimeEnd">
+                  <widget class="rolling_datetime_edit" name="dateTimeEnd">
                    <property name="toolTip">
                     <string>Set this field some time after the &quot;From&quot; one.</string>
                    </property>
@@ -494,9 +494,9 @@ Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to 
  </widget>
  <customwidgets>
   <customwidget>
-   <class>RollingDateTimeEdit</class>
+   <class>rolling_datetime_edit</class>
    <extends>QDateTimeEdit</extends>
-   <header>Radiotrack.RollingDateTimeEdit</header>
+   <header>Radiotrack.rolling_datetime_edit</header>
   </customwidget>
  </customwidgets>
  <tabstops>
