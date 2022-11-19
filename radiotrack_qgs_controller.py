@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*
 
 from random import randrange
+from math import *
 
 from qgis.utils import iface
 from qgis.core import QgsProject, QgsMessageLog, Qgis
@@ -8,11 +9,12 @@ from qgis.core import QgsVectorLayer, QgsFeature, QgsField, edit
 from qgis.core import QgsGeometry, QgsPoint, QgsPointXY, QgsWkbTypes
 from qgis.core import QgsCoordinateTransform, QgsCoordinateReferenceSystem
 from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererCategory, QgsMarkerSymbol
-from .algorithmNewPoint import dst
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import Qgis as QGis
 
 from .csv_utils import labels
+
+RADIAN_DE_LA_TERRE = 6371
 
 class QgsController:
 
@@ -359,3 +361,27 @@ class QgsController:
     def toggleIntersectionsVisible(self):
         self.layerInterVisible = not self.layerInterVisible
         iface.layerTreeView().setLayerVisible(self.layerInter, self.layerInterVisible)
+
+    """
+    Fonctionnalité inspiré du lien ci-dessous :
+    http://www.movable-type.co.uk/scripts/latlong.html
+"""
+
+def dst(longitude, latitude, azimut, distance):
+    """
+        Calcul du nouveau point en fonction des paramètres d'un point (longitude, latitude, azimut, distance)
+    """
+    # Transformation des valeurs de degré en radian
+    rLat = radians(latitude)
+    rLong = radians(longitude)
+    rAzimut = radians(azimut)
+    quotient = distance/RADIAN_DE_LA_TERRE
+
+    # Calcul de la latitude et de la longitude du second point
+    rLat2 = asin(sin(rLat) * cos(quotient) + cos(rLat) * sin(quotient) * cos(rAzimut))
+    param1 = cos(quotient) - sin(rLat) * sin(rLat2)
+    param2 = sin(rAzimut) * sin(quotient) * cos(rLat)
+    rLong2 = rLong + atan2(param2,param1)
+
+    # Transformation des valeurs de radian en degré
+    return degrees(rLat2), degrees(rLong2)
