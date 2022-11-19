@@ -70,8 +70,8 @@ class QgsController:
         self.setId(array)
 
         # If zoom set has not changed (autozoom), adjust the zoom
-        if self.autoZoom():
-            self.updateZoom()
+        #if self.autoZoom():
+        self.updateZoom()
 
     def clearLayers(self):
         self.clearLayer(self.layerInter)
@@ -283,7 +283,7 @@ class QgsController:
 
         self.changeAttributeValues(layer, attrs)
 
-    def setFilter(self, idRows, isFiltered):
+    def setFilter(self, idRows, isFiltered,zoom):
         if len(idRows) == 0 or self.layerPoint is None:
             return
 
@@ -296,7 +296,8 @@ class QgsController:
         self.changeAttributeValues(self.layerInter, attrs)
 
         # If zoom set has not changed (autozoom), adjust the zoom
-        if self.autoZoom():
+        if zoom:
+            #if self.autoZoom():
             self.updateZoom()
 
     def changeAttributeValues(self, layer, attrs):
@@ -348,8 +349,8 @@ class QgsController:
             return
         self.setCrs(self.layerLine, self.CRS)
         self.setCrs(self.layerPoint, self.CRS)
-        if self.autoZoom():
-            self.updateZoom()
+        #if self.autoZoom():
+        self.updateZoom()
         if self.layerInter is not None:
             self.setCrs(self.layerInter, self.CRS)
 
