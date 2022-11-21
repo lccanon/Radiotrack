@@ -1,6 +1,7 @@
 import os, csv, io
 from qgis.core import QgsMessageLog
 from qgis.utils import iface
+from qgis.core import Qgis as QGis
 
 from qgis.PyQt.QtCore import QDateTime
 from qgis.PyQt.QtWidgets import QFileDialog
