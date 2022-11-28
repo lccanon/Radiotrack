@@ -145,7 +145,7 @@ Any previously loaded data will be replaced. (Ctrl+Alt+I)</string>
             <item>
              <widget class="QGroupBox" name="groupBox_3">
               <property name="toolTip">
-               <string>View only the data between the two times (included).</string>
+               <string>adjusts the dates according to the first and last dates of the displayed data</string>
               </property>
               <property name="title">
                <string>Datetime</string>
