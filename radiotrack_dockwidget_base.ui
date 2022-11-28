@@ -430,6 +430,9 @@ Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to 
               <property name="text">
                <string>Autozoom</string>
               </property>
+			  <property name="checked">
+			    <bool>true</bool>
+			  </property>
              </widget>
             </item>
             <item>

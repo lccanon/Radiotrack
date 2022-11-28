@@ -200,7 +200,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.intersectionUpdate.clicked.connect(self.intersectTriangulation)
         self.demoButton.clicked.connect(self.importDemo)
 
-        self.zoom.setChecked(True)
         self.zoom.stateChanged.connect(self.filter)
 
     def refresh(self, item):
