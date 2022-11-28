@@ -365,7 +365,7 @@ class QgsController:
     """
     Fonctionnalité inspiré du lien ci-dessous :
     http://www.movable-type.co.uk/scripts/latlong.html
-"""
+	"""
 
 def dst(longitude, latitude, azimut, distance):
     """
