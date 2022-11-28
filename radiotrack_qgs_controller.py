@@ -71,7 +71,7 @@ class QgsController:
 
         # If zoom set has not changed (autozoom), adjust the zoom
         #if self.autoZoom():
-        self.updateZoom()
+        self.updateZoom(True)
 
     def clearLayers(self):
         self.clearLayer(self.layerInter)
@@ -283,7 +283,7 @@ class QgsController:
 
         self.changeAttributeValues(layer, attrs)
 
-    def setFilter(self, idRows, isFiltered,zoom):
+    def setFilter(self, idRows, isFiltered):
         if len(idRows) == 0 or self.layerPoint is None:
             return
 
@@ -296,9 +296,9 @@ class QgsController:
         self.changeAttributeValues(self.layerInter, attrs)
 
         # If zoom set has not changed (autozoom), adjust the zoom
-        if zoom:
+        #if zoom:
             #if self.autoZoom():
-            self.updateZoom()
+            #self.updateZoom(zoom)
 
     def changeAttributeValues(self, layer, attrs):
         """Change the values of an attribute that can possibly impact the
@@ -309,12 +309,13 @@ class QgsController:
         layer.triggerRepaint()
         layer.updateExtents()
 
-    def updateZoom(self):
-        fullExtent = self.updateFullExtent()
-        # Does not zoom to full extent because it does not integrate well
-        # with a basemap
-        iface.mapCanvas().zoomToFeatureExtent(fullExtent)
-        self.currExtent = iface.mapCanvas().extent()
+    def updateZoom(self, zoom):
+        if zoom:
+            fullExtent = self.updateFullExtent()
+            # Does not zoom to full extent because it does not integrate well
+            # with a basemap
+            iface.mapCanvas().zoomToFeatureExtent(fullExtent)
+            self.currExtent = iface.mapCanvas().extent()
 
     def updateFullExtent(self):
         fullExtent = self.layerPoint.extent()
@@ -350,7 +351,7 @@ class QgsController:
         self.setCrs(self.layerLine, self.CRS)
         self.setCrs(self.layerPoint, self.CRS)
         #if self.autoZoom():
-        self.updateZoom()
+        self.updateZoom(True)
         if self.layerInter is not None:
             self.setCrs(self.layerInter, self.CRS)
 

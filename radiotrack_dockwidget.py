@@ -200,7 +200,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.intersectionUpdate.clicked.connect(self.intersectTriangulation)
         self.demoButton.clicked.connect(self.importDemo)
 
-        self.zoom.stateChanged.connect(self.filter)
+        #self.zoom.stateChanged.connect(self.qgs.updateZoom(self.zoom.isChecked))
 
     def refresh(self, item):
         """Handle table edits
@@ -358,11 +358,9 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                     rowsDel.append(self.model.id(row))
                     self.tableView.setRowHidden(row, True)
 
-        zoom = False
-        if self.zoom.isChecked():
-            zoom = True
-        self.qgs.setFilter(rowsAdd, False, zoom)
-        self.qgs.setFilter(rowsDel, True, zoom)
+        self.qgs.updateZoom(self.zoom.isChecked())
+        self.qgs.setFilter(rowsAdd, False)
+        self.qgs.setFilter(rowsDel, True)
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
 
