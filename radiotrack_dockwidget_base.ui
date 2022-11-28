@@ -426,6 +426,13 @@ Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to 
              </layout>
             </item>
             <item>
+             <widget class="QCheckBox" name="zoom">
+              <property name="text">
+               <string>Autozoom</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QGroupBox" name="groupBox_4">
               <property name="title">
                <string>Intersections (triangulations)</string>
@@ -449,13 +456,6 @@ Change how the &quot;lat&quot; and &quot;lon&quot; fields must be translated to 
                 </widget>
                </item>
               </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="zoom">
-              <property name="text">
-               <string>zoom</string>
-              </property>
              </widget>
             </item>
             <item>
