@@ -236,6 +236,10 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         else:
             self.filter()
 
+        # refresh color ID
+        colors = self.qgs.getIdColors()
+        self.model.setIdColor(colors)
+
         QgsMessageLog.logMessage('Project refreshed', 'Radiotrack',
                                  level = QGis.Info)
 
@@ -280,6 +284,9 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.resetFilter()
         # Initial population of ids with available ones in data
         self.filterUpdate()
+        # Color the id in the tableview
+        colors = self.qgs.getIdColors()
+        self.model.setIdColor(colors)
 
     def updateView(self):
         """Configure the table view and actions

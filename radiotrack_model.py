@@ -16,6 +16,10 @@ class TrackingModel(QStandardItemModel):
     selectedCol_POS = 0
     SORT_ROLE = Qt.UserRole + 1
     ID_ROLE = Qt.UserRole + 2
+    colors = {}
+    colors["null"] = QBrush(QColor(Qt.blue))
+
+    coll=QBrush(QColor(Qt.blue))
 
     def __init__(self, parent):
         super(TrackingModel, self).__init__(parent)
@@ -91,14 +95,20 @@ class TrackingModel(QStandardItemModel):
     def setSelected(self, row, state):
         self.item(row, self.selectedCol_POS).setCheckState(state)
 
+    def setIdColor(self,colors):       
+        for row in range(self.rowCount()):
+            currentItem = self.item(row, 1)
+            currentItem.setBackground(colors[currentItem.text()])
+
     def setBrushRow(self, row, brush):
         for col in range(self.columnCount()):
             currentItem = self.item(row, col)
             # Find the appropriate color
-            # This test is there to avoid turning a invalid cell into a
-            # valid cell
-            if currentItem.valid():
-                currentItem.setBackground(brush)
+            # This test is there to avoid turning a invalid cell into a valid cell
+            # id set in setIdColor
+            if (col != 1): 
+                if currentItem.valid():
+                    currentItem.setBackground(brush)
 
     def updateColor(self, rows):
         """Update the color of multiple rows"""
