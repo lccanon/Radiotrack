@@ -191,7 +191,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.dateComboBox.addItem('hh:mm:ss d/M/yyyy')
         self.dateComboBox.addItem('hh:mm:ss M/d/yyyy')
         """Set segment length"""
-        self.segmentLength.valueChanged.connect(self.qgs.setSegmentLength)
+        self.segmentLength.valueChanged.connect(self.updateSegmentLength)
         """Set CRS"""
         self.epsg4326.clicked.connect(self.qgs.setEPSG4326)
         self.projectCrs.clicked.connect(self.qgs.setProjectCRS)
@@ -201,6 +201,13 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.demoButton.clicked.connect(self.importDemo)
 
         #self.zoom.stateChanged.connect(self.qgs.updateZoom(self.zoom.isChecked))
+
+    def updateSegmentLength(self, length): 
+        self.qgs.setSegmentLength(length)
+        rows = self.model.getAll()
+        for row in rows:
+            self.qgs.updateRowLinePoint(row)
+        self.qgs.updateZoom(True)
 
     def refresh(self, item):
         """Handle table edits
