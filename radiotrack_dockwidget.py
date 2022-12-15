@@ -211,6 +211,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
 
         triangs = self.model.triangulations()
         self.qgs.updateIntersections(triangs)
+        self.qgs.updateIntersectionsLines(triangs)
 
     def refresh(self, item):
         """Handle table edits
@@ -252,6 +253,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
 
         triangs = self.model.triangulations()
         self.qgs.updateIntersections(triangs)
+        self.qgs.updateIntersectionsLines(triangs)
 
         QgsMessageLog.logMessage('Project refreshed', 'Radiotrack',
                                  level = QGis.Info)
@@ -482,6 +484,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         """Get triangulated row ids as pairs of indices"""
         triangs = self.model.triangulations()
         self.qgs.updateIntersections(triangs)
+        self.qgs.updateIntersectionsLines(triangs)
 
     def importDemo(self, checked):
         THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))

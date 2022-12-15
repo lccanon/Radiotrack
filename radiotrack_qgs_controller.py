@@ -19,12 +19,16 @@ RADIAN_DE_LA_TERRE = 6371
 class QgsController:
 
     LINE_LAYER_BASE_NAME = 'lines'
+    INTERSECTIONS_LINES1_LAYER_BASE_NAME = 'intersections_lines1'
+    INTERSECTIONS_LINES2_LAYER_BASE_NAME = 'intersections_lines2'
     POINT_LAYER_BASE_NAME = 'points'
     INTER_LAYER_BASE_NAME = 'intersections'
 
     def __init__(self):
         # Store references to the layers
         self.layerLine = None
+        self.layerIntersectionsLine1 = None
+        self.layerIntersectionsLine2 = None
         self.layerPoint = None
         self.layerInter = None
         # Init geographical settings
@@ -63,8 +67,12 @@ class QgsController:
         # Draw the available points on their layers
         self.drawLines(array)
         self.drawPoints(array)
+        self.drawIntersectionsLines1(triangs)
+        self.drawIntersectionsLines2(triangs)
         self.drawIntersections(triangs)
         iface.layerTreeView().setLayerVisible(self.layerInter, self.layerInterVisible)
+        iface.layerTreeView().setLayerVisible(self.layerIntersectionsLine1, self.layerInterVisible)
+        iface.layerTreeView().setLayerVisible(self.layerIntersectionsLine2, self.layerInterVisible)
 
         # Setting the id
         self.setId(array)
@@ -80,6 +88,10 @@ class QgsController:
         self.layerPoint = None
         self.clearLayer(self.layerLine)
         self.layerLine = None
+        self.clearLayer(self.layerIntersectionsLine1)
+        self.layerIntersectionsLine1 = None
+        self.clearLayer(self.layerIntersectionsLine2)
+        self.layerIntersectionsLine2 = None
         iface.mapCanvas().refresh()
         self.currExtent = None
 
@@ -100,10 +112,49 @@ class QgsController:
         layerName = self.LINE_LAYER_BASE_NAME + self.layerSuffix
         self.layerLine = QgsVectorLayer('LineString?crs=epsg:4326',
                                         layerName, 'memory')
+
         # Create and add lines
         geometries = [self.makeLineGeometry(row) for row in rows]
 
         self.initLayerFeatures(self.layerLine, geometries)
+
+        #XXX return fids here
+        fids = [feature.id() for feature in self.layerLine.getFeatures()]
+
+    def drawIntersectionsLines1(self, triangs):
+        """Draw the lines of the intersections on a layer
+        """
+
+        # Specify the geometry type
+        layerName = self.INTERSECTIONS_LINES1_LAYER_BASE_NAME + self.layerSuffix
+        self.layerIntersectionsLine1 = QgsVectorLayer('LineString?crs=epsg:4326',
+                                        layerName, 'memory')
+
+        # Specify width of the pen
+        self.layerIntersectionsLine1.renderer().symbol().setWidth(1.1)
+
+        # Create and add lines
+        geometries1 = self.computeLineIntersections1(triangs).values()
+        self.initLayerFeatures(self.layerIntersectionsLine1, geometries1)
+
+        #XXX return fids here
+        fids = [feature.id() for feature in self.layerLine.getFeatures()]
+
+    def drawIntersectionsLines2(self, triangs):
+        """Draw the lines of the intersections on a layer
+        """
+        
+        # Specify the geometry type
+        layerName = self.INTERSECTIONS_LINES2_LAYER_BASE_NAME + self.layerSuffix
+        self.layerIntersectionsLine2 = QgsVectorLayer('LineString?crs=epsg:4326',
+                                        layerName, 'memory')
+
+        # Specify width of the pen
+        self.layerIntersectionsLine2.renderer().symbol().setWidth(1.1)
+
+        # Create and add lines
+        geometries2 = self.computeLineIntersections2(triangs).values()
+        self.initLayerFeatures(self.layerIntersectionsLine2, geometries2)
 
         #XXX return fids here
         fids = [feature.id() for feature in self.layerLine.getFeatures()]
@@ -139,6 +190,32 @@ class QgsController:
 
         # Custom renderer for colors
         self.layerInter.setRenderer(self.idRendInter)
+
+    def computeLineIntersections1(self, triangs):
+        """Compute all lines intersections between corresponding filtered lines."""
+        geometries = {}
+        fids = [feature.id() for feature in self.layerPoint.getFeatures()]
+        for fid in fids:
+            geom = QgsGeometry()
+            if fid in triangs:
+                geom1 = self.layerLine.getGeometry(fid)
+                geometries[fid] = geom1
+            else:
+                geometries[fid] = geom
+        return geometries
+
+    def computeLineIntersections2(self, triangs):
+        """Compute all lines intersections between corresponding filtered lines."""
+        geometries = {}
+        fids = [feature.id() for feature in self.layerPoint.getFeatures()]
+        for fid in fids:
+            geom = QgsGeometry()
+            if fid in triangs:
+                geom2 = self.layerLine.getGeometry(triangs[fid])
+                geometries[fid] = geom2
+            else:
+                geometries[fid] = geom
+        return geometries
 
     def computeIntersections(self, triangs):
         """Compute all intersections between corresponding filtered lines."""
@@ -193,6 +270,18 @@ class QgsController:
         to initialize the value to False."""
         self.setFilter([idRow], False)
 
+    def updateIntersectionsLines(self, triangs):
+        """This method is required to update manually the lines intersections
+        anytime there is an update to the data (keeping track of each
+        change would be too cumbersome).
+
+        """
+        # Create and add points
+        geometries1 = self.computeLineIntersections1(triangs)
+        geometries2 = self.computeLineIntersections2(triangs)
+        self.updateRowGeometry(self.layerIntersectionsLine1, geometries1)
+        self.updateRowGeometry(self.layerIntersectionsLine2, geometries2)
+
     def updateIntersections(self, triangs):
         """This method is required to update manually the intersections
         anytime there is an update to the data (keeping track of each
@@ -243,6 +332,8 @@ class QgsController:
         attrs = {row['id_observation']: {fieldIdx: row['id']} for row in array}
 
         self.changeAttributeValues(self.layerLine, attrs)
+        self.changeAttributeValues(self.layerIntersectionsLine1, attrs)
+        self.changeAttributeValues(self.layerIntersectionsLine2, attrs)
         self.changeAttributeValues(self.layerPoint, attrs)
         self.changeAttributeValues(self.layerInter, attrs)
 
@@ -292,6 +383,8 @@ class QgsController:
         attrs = {featureId: {fieldIdx: isFiltered} for featureId in idRows}
 
         self.changeAttributeValues(self.layerLine, attrs)
+        self.changeAttributeValues(self.layerIntersectionsLine1, attrs)
+        self.changeAttributeValues(self.layerIntersectionsLine2, attrs)
         self.changeAttributeValues(self.layerPoint, attrs)
         self.changeAttributeValues(self.layerInter, attrs)
 
@@ -320,6 +413,8 @@ class QgsController:
     def updateFullExtent(self):
         fullExtent = self.layerPoint.extent()
         fullExtent.combineExtentWith(self.layerLine.extent())
+        fullExtent.combineExtentWith(self.layerIntersectionsLine1.extent())
+        fullExtent.combineExtentWith(self.layerIntersectionsLine2.extent())
         # Assumes that the CRS is the same in both layers
         sourceCrs = self.layerPoint.crs()
         destCrs = QgsProject.instance().crs()
@@ -346,9 +441,11 @@ class QgsController:
         self.updateCRS()
 
     def updateCRS(self):
-        if self.layerLine is None or self.layerPoint is None:
+        if self.layerLine is None or self.layerPoint or self.layerIntersectionsLine1 or self.layerIntersectionsLine2 is None:
             return
         self.setCrs(self.layerLine, self.CRS)
+        self.setCrs(self.layerIntersectionsLine1, self.CRS)
+        self.setCrs(self.layerIntersectionsLine2, self.CRS)
         self.setCrs(self.layerPoint, self.CRS)
         #if self.autoZoom():
         self.updateZoom(True)
@@ -363,6 +460,8 @@ class QgsController:
     def toggleIntersectionsVisible(self):
         self.layerInterVisible = not self.layerInterVisible
         iface.layerTreeView().setLayerVisible(self.layerInter, self.layerInterVisible)
+        iface.layerTreeView().setLayerVisible(self.layerIntersectionsLine1, self.layerInterVisible)
+        iface.layerTreeView().setLayerVisible(self.layerIntersectionsLine2, self.layerInterVisible)
 
     """
     Fonctionnalité inspiré du lien ci-dessous :
