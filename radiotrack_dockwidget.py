@@ -209,9 +209,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             self.qgs.updateRowLinePoint(row)
         self.qgs.updateZoom(True)
 
-        triangs = self.model.triangulations()
-        self.qgs.updateIntersections(triangs)
-        self.qgs.updateIntersectionsLines(triangs)
+        self.intersectTriangulation()
 
     def refresh(self, item):
         """Handle table edits
@@ -250,10 +248,9 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         # refresh color ID
         colors = self.qgs.getIdColors()
         self.model.setIdColor(colors)
-
-        triangs = self.model.triangulations()
-        self.qgs.updateIntersections(triangs)
-        self.qgs.updateIntersectionsLines(triangs)
+        # Triangulation update
+        if header == 'lon' or header == 'lat' or header == 'azi' or header == 'id' or header == 'datetime':
+            self.intersectTriangulation()
 
         QgsMessageLog.logMessage('Project refreshed', 'Radiotrack',
                                  level = QGis.Info)
