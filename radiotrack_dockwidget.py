@@ -127,7 +127,6 @@ class CheckBoxHeader(QHeaderView):
 
 
 class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
-
     """Variables membres"""
 
     def __init__(self, parent = None):
@@ -200,9 +199,13 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.intersectionUpdate.clicked.connect(self.intersectTriangulation)
         self.demoButton.clicked.connect(self.importDemo)
 
-        #self.zoom.stateChanged.connect(self.qgs.updateZoom(self.zoom.isChecked))
+        self.zoom.stateChanged.connect(self.zoomClick)
 
-    def updateSegmentLength(self, length): 
+
+    def zoomClick(self):
+        self.qgs.updateZoom(self.zoom.isChecked())
+
+    def updateSegmentLength(self, length):
         self.qgs.setSegmentLength(length)
         rows = self.model.getAll()
         for row in rows:
@@ -352,6 +355,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         colDate = headers.index('datetime')
         rowsAdd = []
         rowsDel = []
+
         for row in range(self.model.rowCount()):
             date = self.model.item(row, colDate).data(Qt.EditRole)
             filterId = self.idFilter.currentText()
@@ -372,14 +376,15 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                 if self.tableView.isRowHidden(row):
                     rowsAdd.append(self.model.id(row))
                     self.tableView.setRowHidden(row, False)
+
             else:
                 if not self.tableView.isRowHidden(row):
                     rowsDel.append(self.model.id(row))
                     self.tableView.setRowHidden(row, True)
 
-        self.qgs.updateZoom(self.zoom.isChecked())
         self.qgs.setFilter(rowsAdd, False)
         self.qgs.setFilter(rowsDel, True)
+        self.qgs.updateZoom(self.zoom.isChecked())
         self.tableView.resizeColumnsToContents()
         self.tableView.resizeRowsToContents()
 

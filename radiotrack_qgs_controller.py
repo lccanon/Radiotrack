@@ -388,11 +388,6 @@ class QgsController:
         self.changeAttributeValues(self.layerPoint, attrs)
         self.changeAttributeValues(self.layerInter, attrs)
 
-        # If zoom set has not changed (autozoom), adjust the zoom
-        #if zoom:
-            #if self.autoZoom():
-            #self.updateZoom(zoom)
-
     def changeAttributeValues(self, layer, attrs):
         """Change the values of an attribute that can possibly impact the
         graphical output (filtering, renderer)"""
@@ -407,8 +402,8 @@ class QgsController:
             fullExtent = self.updateFullExtent()
             # Does not zoom to full extent because it does not integrate well
             # with a basemap
-            iface.mapCanvas().zoomToFeatureExtent(fullExtent)
-            self.currExtent = iface.mapCanvas().extent()
+            if not self.layerPoint.extent().isEmpty():
+                iface.mapCanvas().zoomToFeatureExtent(fullExtent)
 
     def updateFullExtent(self):
         fullExtent = self.layerPoint.extent()
