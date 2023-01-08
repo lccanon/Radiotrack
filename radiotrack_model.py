@@ -17,9 +17,6 @@ class TrackingModel(QStandardItemModel):
     SORT_ROLE = Qt.UserRole + 1
     ID_ROLE = Qt.UserRole + 2
     colors = {}
-    colors["null"] = QBrush(QColor(Qt.blue))
-
-    coll=QBrush(QColor(Qt.blue))
 
     def __init__(self, parent):
         super(TrackingModel, self).__init__(parent)
@@ -97,7 +94,7 @@ class TrackingModel(QStandardItemModel):
 
     def setIdColor(self,colors):       
         for row in range(self.rowCount()):
-            currentItem = self.item(row, 1)
+            currentItem = self.getId(row)
             currentItem.setBackground(colors[currentItem.text()])
 
     def setBrushRow(self, row, brush):
@@ -134,6 +131,36 @@ class TrackingModel(QStandardItemModel):
         # Update validity color of local row in case of successful parsing
         elif success:
             self.updateColor([item.row()])
+
+    def getIdCol(self):
+        return 1
+
+    def getDateCol(self):
+        return 2
+
+    def getLatCol(self):
+        return 3
+
+    def getLonCol(self):
+        return 4
+
+    def getAzimuthCol(self):
+        return 5
+
+    def getId(self,row):
+        return self.item(row, self.getIdCol())
+
+    def getDate(self,row):
+        return self.item(row, self.getDateCol())
+
+    def getLat(self,row):
+        return self.item(row, self.getLatCol())
+
+    def getLon(self,row):
+        return self.item(row, self.getLonCol())
+
+    def getAzimuth(self,row):
+        return self.item(row, self.getAzimuthCol())
 
     def loadArrayInModel(self, array):
         """Load an array in the model/table
