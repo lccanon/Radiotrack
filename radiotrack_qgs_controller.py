@@ -12,11 +12,10 @@ from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererCategory, QgsMark
 from qgis.PyQt.QtCore import QVariant
 from qgis.core import Qgis as QGis
 
-from .csv_utils import labels
-
 RADIAN_DE_LA_TERRE = 6371
 
 class QgsController:
+    labels = {'ID': 'id', 'X': 'lon', 'Y': 'lat', 'AZIMUT': 'azi'}
 
     LINE_LAYER_BASE_NAME = 'lines'
     INTERSECTIONS_LINES1_LAYER_BASE_NAME = 'intersections_lines1'
@@ -303,9 +302,9 @@ class QgsController:
 
     def makeLineGeometry(self, rowData):
         try:
-            x = rowData[labels['X']]
-            y = rowData[labels['Y']]
-            azi = rowData[labels['AZIMUT']]
+            x = rowData[self.labels['X']]
+            y = rowData[self.labels['Y']]
+            azi = rowData[self.labels['AZIMUT']]
             xRes, yRes = dst(x, y, azi, self.segmentLength)
             point = QgsPoint(x, y)
             point2 = QgsPoint(yRes, xRes)
@@ -315,8 +314,8 @@ class QgsController:
 
     def makePointGeometry(self, rowData):
         try:
-            inX = rowData[labels['X']]
-            inY = rowData[labels['Y']]
+            inX = rowData[self.labels['X']]
+            inY = rowData[self.labels['Y']]
             return QgsGeometry.fromPointXY(QgsPointXY(inX, inY))
         except:
             return QgsGeometry()

@@ -3,8 +3,6 @@ from qgis.core import Qgis as QGis
 from qgis.PyQt.QtCore import Qt, QDateTime
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor, QFont
 
-from .csv_utils import types
-
 class TrackingModel(QStandardItemModel):
 
     """Brushes used for the table's cells' background"""
@@ -248,6 +246,12 @@ class TrackingModel(QStandardItemModel):
         return array
 
 class TrackingItem(QStandardItem):
+    types = {
+        'datetime': QDateTime,
+        'lat': float,
+        'lon': float,
+        'azi': float,
+    }
     BRUSH_VALID_CELL = QBrush(QColor(Qt.white))
     BRUSH_INVALID_CELL = QBrush(QColor(Qt.red).lighter(125))
 
@@ -277,7 +281,7 @@ class TrackingItem(QStandardItem):
             return False
         # Change the current type if not the correct one
         header = self.model().headerData(self.column(), Qt.Horizontal)
-        parseFunction = types.get(header)
+        parseFunction = self.types.get(header)
         if parseFunction == None:
             parseFunction = str
         data = self.data(Qt.EditRole)

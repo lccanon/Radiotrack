@@ -20,7 +20,8 @@
  ***************************************************************************/
 """
 
-import os, csv, sys
+import os, csv, sys, io
+
 from qgis.PyQt import uic
 from qgis.core import QgsMessageLog
 from qgis.utils import iface
@@ -35,11 +36,8 @@ from qgis.PyQt.QtWidgets import QWidget, QFileDialog, QHeaderView, QStyle, QStyl
 from qgis.PyQt.QtWidgets import QDockWidget, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QDateTimeEdit
 
 from .manage_documentation import importDoc
-
-from .csv_utils import selectCsvFile, loadCsvToArray, saveArrayToCsv, selectSaveFile
 from .radiotrack_qgs_controller import QgsController
 from .radiotrack_model import TrackingModel
-
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'radiotrack_dockwidget_base.ui'))
@@ -128,6 +126,7 @@ class CheckBoxHeader(QHeaderView):
 
 class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
     """Variables membres"""
+    tableHeaders = ['id', 'datetime', 'lat', 'lon', 'azi']
 
     def __init__(self, parent = None):
         """Constructor."""
@@ -200,7 +199,6 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.demoButton.clicked.connect(self.importDemo)
 
         self.zoom.stateChanged.connect(self.zoomClick)
-
 
     def zoomClick(self):
         self.qgs.updateZoom(self.zoom.isChecked())
@@ -275,13 +273,13 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         used, for disambiguation with the filename.
         """
         if filename is None:
-            filename = selectCsvFile()
+            filename = self.selectCsvFile()
             if filename is None:
                 return
         # Clear only when new file is selected
         self.clear()
         # Load model
-        csvArray = loadCsvToArray(filename)
+        csvArray = self.loadCsvToArray(filename)
         if csvArray is None:
             return
         self.model.itemChanged.disconnect()
@@ -325,7 +323,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         Display a dialog to ask where to save, and save the current
         content of the table in the selected file.
         """
-        filename = selectSaveFile()
+        filename = self.selectSaveFile()
         if filename != '':
             try:
                 array = self.model.toArraySelect()
@@ -333,7 +331,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
                 QgsMessageLog.logMessage('Unable to serialize the table.', 'Radiotrack', level=QGis.Critical)
                 iface.messageBar().pushWarning('Warning Radiotrack', 'Unable to serialize the table.')
             else:
-                if saveArrayToCsv(array, filename):
+                if self.saveArrayToCsv(array, filename):
                     self.currentProjectText.setText(filename)
                     iface.messageBar().pushInfo(u'Radiotrack: ', u'CSV file saved.')
 
@@ -493,3 +491,147 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         myFile = os.path.join(THIS_FOLDER, './Documentation/example.csv')
         """checked is passed on because of argument ambiguity"""
         self.importFile(checked, filename = myFile)
+
+    def writeCsv(csvFileName, array):
+        try:
+            with io.open(csvFileName, 'w', newline = '') as outputFile:
+                writer = csv.writer(outputFile, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_MINIMAL)
+
+                writer.writerows(array)
+
+            return True
+        except:
+            return False
+
+    def saveArrayToCsv(self, array, csvFileName):
+        """Save an array into a csv file.
+
+        The array must have the header (name of the columns) in the first row.
+        Each row of the array will be written on a line of the csv file.
+        Each string will be separated by ','
+        If necessary, a string will be escaped by '"'
+
+        Note: each string in the array must be a string and not a byte array 'string' and not b'string'
+
+        Parameters
+        ----------
+        array : list of list of str
+            The array to save in a csv file
+        csvFileName : str
+            The path of the csv file. The file will be created if it doesn't exist. If it exists, it will be replaced
+
+        Return
+        ------
+        no_error : bool
+            True if the writing succeed
+        """
+        if not self.writeCsv(csvFileName, array):
+            if os.path.exists(csvFileName):
+                os.remove(csvFileName)
+
+                QgsMessageLog.logMessage('Unable to write the csv file', 'Radiotrack', level = QGis.Critical)
+                iface.messageBar().pushCritical('Error Radiotrack', 'Unable to write the csv file.')
+            return False
+        else:
+            return True
+
+    def loadCsvToArray(self,filename):
+        """Load the content of the given csv file into an array
+
+        The resulting array will contain each line of the csv file
+        A line of the csv file is an array of strings
+
+        Parameters
+        ----------
+        filename : str
+            Path of the csv file to read
+
+        Return
+        ------
+        array : list of list of str
+            The array with all the csv file inside
+        """
+        csvArray = []
+        with open(filename, 'rt') as fileInput:
+            isFirstLine = True
+            for row in csv.reader(fileInput):
+                if isFirstLine:
+                    isFirstLine = False
+                    # What we get here are the headers
+                    # We can check their validity first
+                    if not self.validateHeaders(row):
+                        return None
+                csvArray.append(row)
+        # In case of empty file
+        if isFirstLine:
+            QgsMessageLog.logMessage('Unable to load the file: empty file', 'Radiotrack', level = QGis.Critical)
+            iface.messageBar().pushCritical('Warning Radiotrack', 'Unable to load the file: empty file.')
+            return None
+        return csvArray
+
+    def validateHeaders(self,headers):
+        """Validate the headers. Returns True if the headers are valid
+
+        Parameters
+        ----------
+        headers : list of str
+            First line of the csv file. Each column name must be in this array
+
+        Returns
+        -------
+        no_error : bool
+            True if the headers are validated, False if there is an error
+        """
+
+        errors = []
+        try:
+            for index, header in enumerate(self.tableHeaders):
+                if header != headers[index]:
+                    errors.append('Field ' + headers[index] + ' should be ' + header)
+        except:
+            errors.append('Missing header field(s)')
+
+        if len(errors) > 0:
+            iface.messageBar().pushCritical('Error Radiotrack', 'Header structure error. Check the log.')
+            for err in errors:
+                QgsMessageLog.logMessage(err, 'Radiotrack', level = QGis.Critical)
+
+        return len(errors) == 0
+
+    def selectSaveFile():
+        """Display a selection dialog to choose the save file
+
+        Return
+        ------
+        file_path : str
+            The path of the selected file
+        """
+        try:
+            filename = QFileDialog.getSaveFileName(None, 'Select output file ', '', 'CSV files (*.csv)')[0]
+
+            if filename != '':
+                if os.path.splitext(filename)[-1].lower() != '.csv':
+                    filename = filename + '.csv'
+
+            return filename
+        except:
+            iface.messageBar().pushCritical('Error Radiotrack', 'Unable to select a file.')
+            return ''
+
+    def selectCsvFile():
+        """Displays a dialog allowing the user to select a file
+
+        Returns
+        -------
+        file_path : str
+            The path of the selected csv file. Empty if an error occurred, or if nothing was selected
+        """
+        dialog = QFileDialog()
+        dialog.setNameFilter('Text files (*.csv)')
+        if dialog.exec_():
+            filenames = dialog.selectedFiles()
+            QgsMessageLog.logMessage('File successfully selected', 'Radiotrack', level = QGis.Info)
+            return filenames[0]
+        else:
+            QgsMessageLog.logMessage('No file selected', 'Radiotrack', level = QGis.Info)
+            return None
