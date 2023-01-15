@@ -1,5 +1,6 @@
 from qgis.core import QgsMessageLog
 from qgis.core import Qgis as QGis
+from qgis.utils import iface
 from qgis.PyQt.QtCore import Qt, QDateTime
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor, QFont
 
@@ -43,18 +44,23 @@ class TrackingModel(QStandardItemModel):
         dateIndex = headers.index('datetime')
         updateColor = False
         for row in range(self.rowCount()):
-            if self.item(row, dateIndex).parse():
+            item = self.item(row, dateIndex)
+            if item is None:
+                QgsMessageLog.logMessage('Incorrect syntaxe in the file : date missing in the line.', 'Radiotrack', level = QGis.Critical)
+                iface.messageBar().pushWarning('Warning Radiotrack', 'Incorrect syntaxe in the file : date missing in the line.')
+            elif item.parse():
                 updateColor = True
                 self.triangulationDetector.updateTriangulation(row)
         if updateColor:
-            self.updateColor(range(self.rowCount()))
+            self.updateColor(range(self.rowCount()))           
 
     def dateTimeFormat(self):
         return self.datetimeFormat
 
     def valid(self, row):
         for col in range(self.columnCount()):
-            if not self.item(row, col).valid():
+            item = self.item(row, col)
+            if item is None or not item.valid():
                 return False
         return True
 
@@ -101,7 +107,7 @@ class TrackingModel(QStandardItemModel):
             # Find the appropriate color
             # This test is there to avoid turning a invalid cell into a valid cell
             # id set in setIdColor
-            if (col != 1): 
+            if (col != 1 and currentItem != None): 
                 if currentItem.valid():
                     currentItem.setBackground(brush)
 
@@ -188,7 +194,12 @@ class TrackingModel(QStandardItemModel):
                 self.appendRow(items)
         for row in range(self.rowCount()):
             for col in range(self.columnCount()):
-                self.item(row, col).parse()
+                item = self.item(row, col)
+                if item is None:
+                    QgsMessageLog.logMessage('Incorrect syntaxe in the file : One row contains more columns than others.', 'Radiotrack', level = QGis.Critical)
+                    iface.messageBar().pushWarning('Warning Radiotrack', 'Incorrect syntaxe in the file : One row contains more columns than others.')
+                else:
+                    item.parse()
             # should start at 1 because layer ids start at 1
             # XXX let Qgis returns these ids
             self.setId(row, row + 1)
@@ -199,7 +210,9 @@ class TrackingModel(QStandardItemModel):
         result = {}
         for col in range(self.columnCount()):
             header = self.headerData(col, Qt.Horizontal)
-            result[header] = self.item(row, col).data(Qt.EditRole)
+            item = self.item(row, col)
+            if item is not None:
+                result[header] = item.data(Qt.EditRole)
         result['id_observation'] = self.id(row)
         return result
 
@@ -237,7 +250,7 @@ class TrackingModel(QStandardItemModel):
                 line = []
                 for col in range(1, self.columnCount()):
                     item = self.item(row, col)
-                    if col == dateIndex and item.valid():
+                    if item != None and col == dateIndex and item.valid():
                         data = item.data(Qt.EditRole)
                         line.append(str(data.toString(self.dateTimeFormat())))
                     else:
