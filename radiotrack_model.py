@@ -3,6 +3,7 @@ from qgis.core import Qgis as QGis
 from qgis.utils import iface
 from qgis.PyQt.QtCore import Qt, QDateTime
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem, QBrush, QColor, QFont
+import locale
 
 class TrackingModel(QStandardItemModel):
 
@@ -137,19 +138,29 @@ class TrackingModel(QStandardItemModel):
             self.updateColor([item.row()])
 
     def getIdCol(self):
-        return 1
+        headers = [self.headerData(col, Qt.Horizontal)
+                   for col in range(self.columnCount())]
+        return headers.index('id')
 
     def getDateCol(self):
-        return 2
+        headers = [self.headerData(col, Qt.Horizontal)
+                   for col in range(self.columnCount())]
+        return headers.index('datetime')
 
     def getLatCol(self):
-        return 3
+        headers = [self.headerData(col, Qt.Horizontal)
+                   for col in range(self.columnCount())]
+        return headers.index('lat')
 
     def getLonCol(self):
-        return 4
+        headers = [self.headerData(col, Qt.Horizontal)
+                   for col in range(self.columnCount())]
+        return headers.index('lon')
 
     def getAzimuthCol(self):
-        return 5
+        headers = [self.headerData(col, Qt.Horizontal)
+                   for col in range(self.columnCount())]
+        return headers.index('azi')
 
     def getId(self,row):
         return self.item(row, self.getIdCol())
@@ -302,7 +313,12 @@ class TrackingItem(QStandardItem):
             return False
         try:
             if parseFunction != QDateTime:
-                content = parseFunction(data)
+                if header == 'lat' or header == 'lon':
+                    # Set the locale to the current system locale
+                    locale.setlocale(locale.LC_ALL, '')
+                    content = locale.atof(data)
+                else:
+                    content = parseFunction(data)
             else:
                 content = QDateTime.fromString(data,
                                                self.model().dateTimeFormat())
