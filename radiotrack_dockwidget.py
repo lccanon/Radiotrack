@@ -22,7 +22,7 @@
 
 import os, csv, sys, io
 
-from qgis.PyQt import uic
+from qgis.PyQt import uic, QtCore
 from qgis.core import QgsMessageLog
 from qgis.utils import iface
 from qgis.gui import QgsMessageBar
@@ -35,7 +35,6 @@ from qgis.PyQt.QtWidgets import QWidget, QFileDialog, QHeaderView, QStyle, QStyl
 
 from qgis.PyQt.QtWidgets import QDockWidget, QShortcut, QItemEditorFactory, QStyledItemDelegate, QDoubleSpinBox, QDateTimeEdit
 
-from .manage_documentation import importDoc
 from .radiotrack_qgs_controller import QgsController
 from .radiotrack_model import TrackingModel
 
@@ -134,7 +133,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         self.setupUi(self)
         #iface.dock = self # for debug only
         """Import the documentation"""
-        importDoc(self.documentationText)
+        self.importDoc(self.documentationText)
         """Model initialization"""
         self.model = TrackingModel(self)
         self.qgs = QgsController()
@@ -635,3 +634,12 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
         else:
             QgsMessageLog.logMessage('No file selected', 'Radiotrack', level = QGis.Info)
             return None
+
+    def importDoc(self, qTextDoc):
+        qTextDoc.setOpenLinks(True)
+        qTextDoc.setOpenExternalLinks(True)
+        docFile = './Documentation/README.html'
+        qTextDoc.clear()
+        THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+        myFile = os.path.join(THIS_FOLDER, docFile)
+        qTextDoc.setSource(QtCore.QUrl.fromLocalFile(myFile))
