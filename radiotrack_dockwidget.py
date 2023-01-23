@@ -517,7 +517,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
 
         return len(errors) == 0
 
-    def selectSaveFile():
+    def selectSaveFile(self):
         """Display a selection dialog to choose the save file
 
         Return
@@ -537,7 +537,7 @@ class RadiotrackDockWidget(QDockWidget, FORM_CLASS):
             iface.messageBar().pushCritical('Error Radiotrack', 'Unable to select a file.')
             return ''
 
-    def selectCsvFile():
+    def selectCsvFile(self):
         """Displays a dialog allowing the user to select a file
 
         Returns
